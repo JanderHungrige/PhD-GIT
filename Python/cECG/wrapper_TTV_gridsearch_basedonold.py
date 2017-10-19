@@ -49,7 +49,9 @@ start_time = time.time()
  
 
 description='_only_ASQSIS_perPatient_nosampleWeight'
-consoleinuse='4';
+consoleinuse='4'
+
+savepath='C:/Users/savepath/Dropbox/PHD/python/cECG/Results/'
 
 classweight=0 # If classweights should be automatically determined and used for trainnig use: 1 else:0
 saving=0
@@ -58,7 +60,7 @@ preGridsearch=0
 finalGridsearch=1
 plotting_grid=1
 c=3
-gamma=3.8
+gamma=0.001
 
 """
 Con 1 ECG; con 2 cECG; con 3 cECG old F; con 4 ECG old F
@@ -68,7 +70,7 @@ con 10 ECG+coounter label 1,2,4;
 """
 #### SELECTING THE LABELS FOR SELECTED BABIES
 label=array([1,2,3,4,5,6]) # 1=AS 2=QS 3=Wake 4=Care-taking 5=NA 6= transition
-babies =[0,1,2]#,3,4,5,6,7,8] #0-9
+babies =[0,1,2,3]#,4,5,6,7,8] #0-9
     
 #### CREATE ALL POSSIBLE COMBINATIONS OUT OF 30 FEATURES. STOP AT Ncombos FEATURE SET(DUE TO SVM COMPUTATION TIME)
 lst = [0,1,2,3]#,4,5,6,7,8,9,10,11,12,13,15,16,17,18,19,20,21,22,23,24,25,26,27,28,29]
@@ -84,7 +86,11 @@ combs=[]
 bestAUCs=nan
 Subsets=list() 
 Performance=list()
-ValidatedPerformance=list()
+ValidatedPerformance_macro=list()
+ValidatedPerformance_K=list()
+ValidatedPerformance_micro=list()
+ValidatedPerformance_weigth=list()  
+ValidatedPerformance_all=list()
 BiasInfluence=list()
 #for i in range(1, len(lst)+1):
         
@@ -153,7 +159,8 @@ for V in range(len(babies)):
         Xfeat=[val[:,combs_short[Fc]] for sb, val in enumerate(FeatureMatrix_auswahl)] # selecting the features to run
         Xfeat=[val[idx[sb],:] for sb, val in enumerate(Xfeat)]   #selecting the datapoints in label
         
-        resultsF1,resultsK,K_collect,F1_collect=Classifier_routine_no_sampelWeight(Xfeat,y_each_patient,selected_babies,label,classweight,c,gamma)
+        resultsF1_maco,resultsK,resultsF1_micro,resultsF1_weight,resultsF1_all \
+        =Classifier_routine_no_sampelWeight(Xfeat,y_each_patient,selected_babies,label,classweight,c,gamma)
         collected_mean_auc.append(resultsK) # This collects the mean AUC of each itteration. As we want to know whcih combination is the best, we collect all mean AUCs and search for the maximum later
         print('BF Round: %i of:%i' %(Fc+1,len(combs_short)))    
            
@@ -190,11 +197,10 @@ for V in range(len(babies)):
             Xfeat=[val[:,lst2] for sb, val in enumerate(FeatureMatrix_auswahl)] # using the feature values for features in lst2 to run
             Xfeat=[val[idx[sb],:] for sb, val in enumerate(Xfeat)]   #choosing only the values which are taged with the used labels (AS=1 QS=2 ...)
         
-            resultsF1,resultsK,K_collect,F1_collect=Classifier_routine_no_sampelWeight(Xfeat,y_each_patient,selected_babies,label,classweight,c,gamma)
-            if size(resultK)>1:
-                F1=resultK[:]
-                resultK=mean(resultK)
-            collected_mean_auc_new.append(resultK)
+            resultsF1_maco,resultsK,resultsF1_micro,resultsF1_weight,resultsF1_all \
+            =Classifier_routine_no_sampelWeight(Xfeat,y_each_patient,selected_babies,label,classweight,c,gamma)
+
+            collected_mean_auc_new.append(resultsK)
             
             lst2=selectedF[:]  # reset lst2 
                    
@@ -244,13 +250,19 @@ for V in range(len(babies)):
     Xfeat_valid=[val[:,selectedF] for sb, val in enumerate(FeatureMatrix_auswahl_valid)] # using the feature values for features in lst2 to run
     Xfeat_valid=[val[idx_valid[sb],:] for sb, val in enumerate(Xfeat_valid)]  
     
-    perf,F1_collected_val=Validate_with_classifier(Xfeat_valid,y_each_patient_valid,selected_babies,selected_validation,label,classweight,c,gamma)
+    resultsF1_macro,resultsK,resultsF1_micro,resultsF1_weight,resultsF1_all \
+    =Validate_with_classifier(Xfeat_valid,y_each_patient_valid,selected_babies,selected_validation,label,classweight,c,gamma)
        
 #    sys.exit('Jan werth 206')
 
     Subsets.append(selectedF) # Saving best Subset and performance to be compared with other validated sets 
     Performance.append(m)
-    ValidatedPerformance.append(perf)
+    ValidatedPerformance_macro.append(resultsF1_macro)
+    ValidatedPerformance_K.append(resultsK)
+    ValidatedPerformance_micro.append(resultsF1_micro)
+    ValidatedPerformance_weigth.append(resultsF1_weight)    
+    ValidatedPerformance_all.append(resultsF1_all)
+
     BiasInfluence.append(Performance[V]-ValidatedPerformance[V])   
     
 """
@@ -284,18 +296,26 @@ if finalGridsearch:
     input("Press Enter to continue...")
 
 
-resultsF1_test,resultsK_test,K_collect_test,F1_collect_test=Classifier_routine_no_sampelWeight(Xfeat,y_each_patient,selected_babies,label,classweight,c,gamma)
-
-
+resultsF1_maco_test,resultsK_test,resultsF1_micro_test,resultsF1_weight_test,resultsF1_all_test \
+=Classifier_routine_no_sampelWeight(Xfeat,y_each_patient,selected_babies,label,classweight,c,gamma)
 
 """
 ENDING stuff
 """
         
 if saving:      
-    save('C:/Users/310122653/Dropbox/PHD/python/cECG/Results/selectedF' + description, selectedF)     
-    save('C:/Users/310122653/Dropbox/PHD/python/cECG/Results/bestAUCs' + description, bestAUCs)
-    save('C:/Users/310122653/Dropbox/PHD/python/cECG/Results/combs_short' + description, combs_short)
+    save(savepath + 'ValidatedPerformance_macro' + description, ValidatedPerformance_macro)     
+    save(savepath + 'ValidatedPerformance_K' + description, ValidatedPerformance_K)     
+    save(savepath + 'ValidatedPerformance_micro' + description, ValidatedPerformance_micro)
+    save(savepath + 'ValidatedPerformance_weigth' + description, ValidatedPerformance_weigth)     
+    save(savepath + 'ValidatedPerformance_all' + description, ValidatedPerformance_all)  
+    
+    save(savepath + 'resultsF1_maco_test' + description, resultsF1_maco_test)     
+    save(savepath + 'resultsK_test' + description, resultsK_test)     
+    save(savepath + 'resultsF1_micro_test' + description, resultsF1_micro_test)     
+    save(savepath + 'resultsF1_weight_test' + description, resultsF1_weight_test)     
+    save(savepath + 'resultsF1_all_test' + description, resultsF1_all_test)     
+     
     import scipy.io as sio
     #sio.savemat('C:/Users/310122653/Dropbox/PHD/python/cECG/Results/', bestAUCs)        
 

@@ -37,7 +37,7 @@ def Classifier_routine_no_sampelWeight(Xfeat,y_each_patient,selected_babies,labe
 #### TRAIN CLASSIFIER
     meanaccLOO=[];accLOO=[];testsubject=[];tpr_mean=[];counter=0;
     mean_tpr = 0.0;mean_fpr = np.linspace(0, 1, 100)
-    F1_collect=[];K_collect=[]
+    F1_macro_collect=[];F1_micro_collect=[];F1_weight_collect=[];F1_all_collect=[];K_collect=[]
 
     #CREATING TEST AND TRAIN SETS
     for j in range(len(selected_babies)-1):
@@ -71,6 +71,7 @@ def Classifier_routine_no_sampelWeight(Xfeat,y_each_patient,selected_babies,labe
 #        sys.exit('Jan werth')
         if len(label)<2:
             print("please use at least two labels")
+            break
             
 
  # F1 Kappa
@@ -84,24 +85,22 @@ def Classifier_routine_no_sampelWeight(Xfeat,y_each_patient,selected_babies,labe
             
             tmpK=cohen_kappa_score(y_test.ravel(),prediction,labels=label)
                      
-            F1_macro_collect.append(tmpf1);tmpf1=[] 
+            F1_macro_collect.append(tmpf1_macro);tmpf1_macro=[] 
             F1_micro_collect.append(tmpf1_micro);tmpf1_micro=[] 
             F1_weight_collect.append(tmpf1_weight);tmpf1_weight=[] 
             F1_all_collect.append(tmpf1_all);tmpf1_all=[] 
             
             K_collect.append(tmpK);tmpK=[]  
                              
-            resultsF1_maco=mean(F1_macro_collect)
-            resultsF1_micro=mean(F1_micro_collect)
-            resultsF1_weight=mean(F1_weight_collect)
-            resultsF1_all=mean(F1_all_collect)
-            
-            resultsK=mean(K_collect)    
-                      
+    resultsF1_maco=mean(F1_macro_collect)
+    resultsF1_micro=mean(F1_micro_collect)
+    resultsF1_weight=mean(F1_weight_collect)
+    resultsF1_all=mean(np.array(F1_all_collect), axis=0) 
+    resultsK=mean(K_collect)    
+             
     return resultsF1_maco,resultsK,resultsF1_micro,resultsF1_weight,resultsF1_all 
             #F1 returns with average='none' a F1 score for each label or macro=meaned
-            
-            
+
 ###########################################################################################################    
 ###########################################################################################################    
 """
@@ -126,8 +125,7 @@ def Classifier_routine_with_sampleWeight(Xfeat,y_each_patient,selected_babies,la
 #### TRAIN CLASSIFIER
     meanaccLOO=[];accLOO=[];testsubject=[];tpr_mean=[];counter=0;
     mean_tpr = 0.0;mean_fpr = np.linspace(0, 1, 100)
-    mean_F1=[]
-    
+    F1_macro_collect=[];F1_micro_collect=[];F1_weight_collect=[];F1_all_collect=[];K_collect=[]
     #CREATING TEST AND TRAIN SETS
     for j in range(len(selected_babies)):
         print('.' , sep=' ', end='', flush=True)          
@@ -180,7 +178,7 @@ def Classifier_routine_with_sampleWeight(Xfeat,y_each_patient,selected_babies,la
             
             tmpK=cohen_kappa_score(y_test.ravel(),prediction,labels=label)
                      
-            F1_macro_collect.append(tmpf1);tmpf1=[] 
+            F1_macro_collect.append(tmpf1_macro);tmpf1_macro=[] 
             F1_micro_collect.append(tmpf1_micro);tmpf1_micro=[] 
             F1_weight_collect.append(tmpf1_weight);tmpf1_weight=[] 
             F1_all_collect.append(tmpf1_all);tmpf1_all=[] 
@@ -206,7 +204,8 @@ def Validate_with_classifier(Xfeat,y_each_patient,selected_babies,selected_valid
 #### TRAIN CLASSIFIER
     meanaccLOO=[];accLOO=[];testsubject=[];tpr_mean=[];counter=0;
     mean_tpr = 0.0;mean_fpr = np.linspace(0, 1, 100)
-    F1_collect=[]
+    F1_macro_collect=[];F1_micro_collect=[];F1_weight_collect=[];F1_all_collect=[];K_collect=[]
+
 
     #CREATING TEST AND TRAIN SETS
     Selected_training=selected_babies
@@ -248,7 +247,7 @@ def Validate_with_classifier(Xfeat,y_each_patient,selected_babies,selected_valid
         
         tmpK=cohen_kappa_score(y_test.ravel(),prediction,labels=label)
                  
-        F1_macro_collect.append(tmpf1);tmpf1=[] 
+        F1_macro_collect.append(tmpf1_macro);tmpf1_macro=[] 
         F1_micro_collect.append(tmpf1_micro);tmpf1_micro=[] 
         F1_weight_collect.append(tmpf1_weight);tmpf1_weight=[] 
         F1_all_collect.append(tmpf1_all);tmpf1_all=[] 
@@ -262,7 +261,7 @@ def Validate_with_classifier(Xfeat,y_each_patient,selected_babies,selected_valid
         
         resultsK=mean(K_collect)    
                   
-return resultsF1_maco,resultsK,resultsF1_micro,resultsF1_weight,resultsF1_all 
+    return resultsF1_maco,resultsK,resultsF1_micro,resultsF1_weight,resultsF1_all 
         #F1 returns with average='none' a F1 score for each label or macro=meaned
         
                   
