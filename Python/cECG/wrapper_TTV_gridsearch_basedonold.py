@@ -114,14 +114,9 @@ GRID SEARCH FOR C AND GAMMA
 if preGridsearch:
     # For pregridsearch take all label
     # for final gridsearch use the labels you are investigating
-#    gridC=arange(0.1, 6.1, 0.2) #(from, to, step)
-#    gridY=arange(0.1, 6.1, 0.2)
-    
-#    gridC=linspace(0.1,6,num=6/0.3)
-#    gridC=[0.1,1,2,4,8,10,20,100,1000]
-#    gridY=linspace(0.1,6,num=6/0.3)
-    gridC=[1,2]
-    gridY=[0.1,0.0001,0.01]
+#
+    gridC=float64([1,4,10,100,1000])
+    gridY=float64([1,0.5,0.1,0.05,001,0.005,0001,0.0005,0.0001])
     [c,gamma]=GridSearch_all(plotting_grid,gridC,gridY,lst,label,babies,AnnotMatrix_each_patient,FeatureMatrix_each_patient,classweight)
     disp(c);disp(gamma)
     sys.exit('Jan werth first gridsearch')
@@ -161,7 +156,7 @@ for V in range(len(babies)):
         
         resultsF1_maco,resultsK,resultsF1_micro,resultsF1_weight,resultsF1_all \
         =Classifier_routine_no_sampelWeight(Xfeat,y_each_patient,selected_babies,label,classweight,c,gamma)
-        collected_mean_auc.append(resultsK) # This collects the mean AUC of each itteration. As we want to know whcih combination is the best, we collect all mean AUCs and search for the maximum later
+        collected_mean_auc.append(resultsF1_micro) # This collects the mean AUC of each itteration. As we want to know whcih combination is the best, we collect all mean AUCs and search for the maximum later
         print('BF Round: %i of:%i' %(Fc+1,len(combs_short)))    
            
     """ 
@@ -200,7 +195,7 @@ for V in range(len(babies)):
             resultsF1_maco,resultsK,resultsF1_micro,resultsF1_weight,resultsF1_all \
             =Classifier_routine_no_sampelWeight(Xfeat,y_each_patient,selected_babies,label,classweight,c,gamma)
 
-            collected_mean_auc_new.append(resultsK)
+            collected_mean_auc_new.append(resultsF1_micro)
             
             lst2=selectedF[:]  # reset lst2 
                    
@@ -288,12 +283,12 @@ Xfeat_final=[val[idx[sb],:] for sb, val in enumerate(Xfeat_final)]   #selecting 
 
 
 if finalGridsearch:   
-    gridC=linspace(1,11,num=10/1)
-    gridY=linspace(1,11,num=10/1)
+    gridC=float64([1,4,10,100,1000])
+    gridY=float64([3,1,0.5,0.1,0.05,001,0.005,0001,0.0005,0.0001])
     [c,gamma]=GridSearch_commonFeatures(plotting_grid,gridC,gridY,lst,label,Xfeat_final,y_each_patient,selected_babies,classweight)
     print('The final choosen C and gamma are: C: %.2f gamma: %.2f'%(c,gamma))
 #    sys.exit('Jan werth final Gridsearch')
-    input("Press Enter to continue...")
+#    input("Press Enter to continue...")
 
 
 resultsF1_maco_test,resultsK_test,resultsF1_micro_test,resultsF1_weight_test,resultsF1_all_test \

@@ -57,7 +57,8 @@ def GridSearch_all(plotting_grid,gridC,gridY,lst,label,selected_babies,AnnotMatr
         for Y in range(len(gridY)):
             print('C:', sep='', end='', flush=True); print(gridC[C], sep='', end='', flush=True)
             print('  Y:', sep='', end='', flush=True); print(gridY[Y], sep='', end='', flush=True)
-            result=Classifier_routine_no_sampelWeight(Xfeat,y_each_patient,selected_babies,label,classweight,gridC[C],gridY[Y])[0] #[0] says take only first return value
+            result=Classifier_routine_no_sampelWeight(Xfeat,y_each_patient,selected_babies,label,classweight,gridC[C],gridY[Y])\
+            [2] # 0-4 at the moment: macro micro weight all kappa #[0] says take only first return value from function
             print(' Result %.3f' % result)
             differnt_c_y_results[C,Y]=result
 #            differnt_y_results=[differnt_y_results,result] # create column for each Y
@@ -104,7 +105,8 @@ def GridSearch_commonFeatures(plotting_grid,gridC,gridY,lst,label,Xfeat,y_each_p
         for Y in range(len(gridY)):
             print('C:', sep='', end='', flush=True); print(gridC[C], sep='', end='', flush=True)
             print('  Y:', sep='', end='', flush=True); print(gridY[Y], sep='', end='', flush=True)
-            result=Classifier_routine_no_sampelWeight(Xfeat,y_each_patient,selected_babies,label,classweight,gridC[C],gridY[Y])[0]
+            result=Classifier_routine_no_sampelWeight(Xfeat,y_each_patient,selected_babies,label,classweight,gridC[C],gridY[Y])\
+            [2]# 0-4 at the moment: macro micro weight all kappa #[0] says take only first return value from function
             print(' Result %.3f' % result)
             pdb.set_trace()
             differnt_c_y_results[C,Y]=result
