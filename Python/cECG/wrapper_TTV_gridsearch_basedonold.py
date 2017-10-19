@@ -39,19 +39,36 @@ import pdb # use pdb.set_trace() as breakpoint
 
 
 #from compute_class_weight import *   
-
-
 import time
-
 start_time = time.time()
 
-# Loadig Data
- 
 
-description='_only_ASQSIS_perPatient_nosampleWeight'
+
+"""
+**************************************************************************
+CHANGE THE DATASET IN Loading_5min_mat_files_cECG.py IF USING ECG OR cECG
+**************************************************************************
+"""
+#_Labels_ECG_Featurelist_Scoring_classweigt_C_gamma
+
+description='_123456_cECG_lst_micro_'
 consoleinuse='4'
 
-savepath='C:/Users/savepath/Dropbox/PHD/python/cECG/Results/'
+savepath='/home/310122653/Pyhton_Folder/cECG/Results/'
+
+#### SELECTING THE LABELS FOR SELECTED BABIES
+label=array([1,2,3,4,5,6]) # 1=AS 2=QS 3=Wake 4=Care-taking 5=NA 6= transition
+babies =[0,1,2,3,4,5,6,7,8] #0-9
+    
+#### CREATE ALL POSSIBLE COMBINATIONS OUT OF 30 FEATURES. STOP AT Ncombos FEATURE SET(DUE TO SVM COMPUTATION TIME)
+lst = [0,1,2,3,4,5,6,7,8,9,10,11,12,13,15,16,17,18,19,20,21,22,23,24,25,26,27,28,29]
+lst_old=[3,4,5,6,7,8,9,10,11,13,15,16,17,18,19,20,21,22,23,24,25,26] # From first paper to compare with new features
+#lst=lst_old
+"""
+**************************************************************************
+CHANGE THE DATASET IN Loading_5min_mat_files_cECG.py IF USING ECG OR cECG
+**************************************************************************
+"""
 
 classweight=0 # If classweights should be automatically determined and used for trainnig use: 1 else:0
 saving=0
@@ -62,25 +79,6 @@ plotting_grid=1
 c=3
 gamma=0.001
 
-"""
-Con 1 ECG; con 2 cECG; con 3 cECG old F; con 4 ECG old F
-Con 6 ECG +counter; COn 7 cECG +counter; con8 cECG+old+counter; 
-con 9 ECG+old+counter
-con 10 ECG+coounter label 1,2,4; 
-"""
-#### SELECTING THE LABELS FOR SELECTED BABIES
-label=array([1,2,3,4,5,6]) # 1=AS 2=QS 3=Wake 4=Care-taking 5=NA 6= transition
-babies =[0,1,2,3]#,4,5,6,7,8] #0-9
-    
-#### CREATE ALL POSSIBLE COMBINATIONS OUT OF 30 FEATURES. STOP AT Ncombos FEATURE SET(DUE TO SVM COMPUTATION TIME)
-lst = [0,1,2,3]#,4,5,6,7,8,9,10,11,12,13,15,16,17,18,19,20,21,22,23,24,25,26,27,28,29]
-lst_old=[3,4,5,6,7,8,9,10,11,13,15,16,17,18,19,20,21,22,23,24,25,26] # From first paper to compare with new features
-#lst=lst_old
-"""
-**************************************************************************
-CHANGE THE DATASET IN Loading_5min_mat_files_cECG.py IF USING ECG OR cECG
-**************************************************************************
-"""
 
 combs=[]
 bestAUCs=nan
@@ -209,7 +207,6 @@ for V in range(len(babies)):
             idx_m=[i for i, j in enumerate(collected_mean_auc_new) if j == m_new] # find the feature indx which increased performance
             addition=lstcpy[idx_m[0]] # get the feature (=feature idx) to add into the selectedF
             selectedF+=[addition]# add new found feature
-            unmeanedF1=F1_collect[:]
             lstcpy.remove(addition) # Remove the top feature from the list
             m=m_new #new maximum value to compare to
             counter=0 # reset the counter for adding Featurees even when not higher in value
@@ -299,6 +296,8 @@ ENDING stuff
 """
         
 if saving:      
+    save(savepath + 'Common_Features' + description, Common_Features)     
+    
     save(savepath + 'ValidatedPerformance_macro' + description, ValidatedPerformance_macro)     
     save(savepath + 'ValidatedPerformance_K' + description, ValidatedPerformance_K)     
     save(savepath + 'ValidatedPerformance_micro' + description, ValidatedPerformance_micro)
