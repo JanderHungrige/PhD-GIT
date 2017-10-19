@@ -74,23 +74,31 @@ def Classifier_routine_no_sampelWeight(Xfeat,y_each_patient,selected_babies,labe
             
 
  # F1 Kappa
-        else:
+        else:        
             prediction=clf.fit(X_train,y_train.ravel()).predict(X_test)
     #           F1=f1_score(y_test, probas_[:, 1], labels=list(label), pos_label=2, average=None, sample_weight=None) 
-            tmpf1=f1_score(y_test.ravel(), prediction, average='macro')#, pos_label=None)
+            tmpf1_macro=f1_score(y_test.ravel(), prediction, average='macro')#, pos_label=None)
             tmpf1_micro=f1_score(y_test.ravel(), prediction,average='micro')
             tmpf1_weight=f1_score(y_test.ravel(), prediction,average='weighted')
             tmpf1_all=f1_score(y_test.ravel(), prediction,labels=label, average=None)#, pos_label=None)
             
             tmpK=cohen_kappa_score(y_test.ravel(),prediction,labels=label)
                      
-            F1_collect.append(tmpf1);tmpf1=[] 
-            K_collect.append(tmpK);tmpK=[]   
-                 
-            resultsF1=mean(F1_collect)    
-            resultsK=mean(K_collect)    
+            F1_macro_collect.append(tmpf1);tmpf1=[] 
+            F1_micro_collect.append(tmpf1_micro);tmpf1_micro=[] 
+            F1_weight_collect.append(tmpf1_weight);tmpf1_weight=[] 
+            F1_all_collect.append(tmpf1_all);tmpf1_all=[] 
             
-    return resultsF1,resultsK,K_collect,F1_collect #F1
+            K_collect.append(tmpK);tmpK=[]  
+                             
+            resultsF1_maco=mean(F1_macro_collect)
+            resultsF1_micro=mean(F1_micro_collect)
+            resultsF1_weight=mean(F1_weight_collect)
+            resultsF1_all=mean(F1_all_collect)
+            
+            resultsK=mean(K_collect)    
+                      
+    return resultsF1_maco,resultsK,resultsF1_micro,resultsF1_weight,resultsF1_all 
             #F1 returns with average='none' a F1 score for each label or macro=meaned
             
             
@@ -165,20 +173,28 @@ def Classifier_routine_with_sampleWeight(Xfeat,y_each_patient,selected_babies,la
         else:        
             prediction=clf.fit(X_train,y_train.ravel()).predict(X_test)
     #           F1=f1_score(y_test, probas_[:, 1], labels=list(label), pos_label=2, average=None, sample_weight=None) 
-            tmpf1=f1_score(y_test.ravel(), prediction, average='macro')#, pos_label=None)
+            tmpf1_macro=f1_score(y_test.ravel(), prediction, average='macro')#, pos_label=None)
             tmpf1_micro=f1_score(y_test.ravel(), prediction,average='micro')
             tmpf1_weight=f1_score(y_test.ravel(), prediction,average='weighted')
             tmpf1_all=f1_score(y_test.ravel(), prediction,labels=label, average=None)#, pos_label=None)
             
             tmpK=cohen_kappa_score(y_test.ravel(),prediction,labels=label)
                      
-            F1_collect.append(tmpf1);tmpf1=[] 
-            K_collect.append(tmpK);tmpK=[]   
-                 
-            resultsF1=mean(F1_collect)    
+            F1_macro_collect.append(tmpf1);tmpf1=[] 
+            F1_micro_collect.append(tmpf1_micro);tmpf1_micro=[] 
+            F1_weight_collect.append(tmpf1_weight);tmpf1_weight=[] 
+            F1_all_collect.append(tmpf1_all);tmpf1_all=[] 
+            
+            K_collect.append(tmpK);tmpK=[]  
+                             
+            resultsF1_maco=mean(F1_macro_collect)
+            resultsF1_micro=mean(F1_micro_collect)
+            resultsF1_weight=mean(F1_weight_collect)
+            resultsF1_all=mean(F1_all_collect)
+            
             resultsK=mean(K_collect)    
                       
-    return resultsF1,resultsK,K_collect,F1_collect #F1
+    return resultsF1_maco,resultsK,resultsF1_micro,resultsF1_weight,resultsF1_all #F1
             #F1 returns with average='none' a F1 score for each label or macro=meaned
 ###########################################################################################################    
 ###########################################################################################################   
@@ -222,23 +238,31 @@ def Validate_with_classifier(Xfeat,y_each_patient,selected_babies,selected_valid
         print("please use at least two labels")
         
  # F1 Kappa
-    else:
-            prediction=clf.fit(X_train,y_train.ravel()).predict(X_test)
-    #           F1=f1_score(y_test, probas_[:, 1], labels=list(label), pos_label=2, average=None, sample_weight=None) 
-            tmpf1=f1_score(y_test.ravel(), prediction, average='macro')#, pos_label=None)
-            tmpf1_micro=f1_score(y_test.ravel(), prediction,average='micro')
-            tmpf1_weight=f1_score(y_test.ravel(), prediction,average='weighted')
-            tmpf1_all=f1_score(y_test.ravel(), prediction,labels=label, average=None)#, pos_label=None)
-            
-            tmpK=cohen_kappa_score(y_test.ravel(),prediction,labels=label)
-                     
-            F1_collect.append(tmpf1);tmpf1=[] 
-            K_collect.append(tmpK);tmpK=[]   
+    else:        
+        prediction=clf.fit(X_train,y_train.ravel()).predict(X_test)
+#           F1=f1_score(y_test, probas_[:, 1], labels=list(label), pos_label=2, average=None, sample_weight=None) 
+        tmpf1_macro=f1_score(y_test.ravel(), prediction, average='macro')#, pos_label=None)
+        tmpf1_micro=f1_score(y_test.ravel(), prediction,average='micro')
+        tmpf1_weight=f1_score(y_test.ravel(), prediction,average='weighted')
+        tmpf1_all=f1_score(y_test.ravel(), prediction,labels=label, average=None)#, pos_label=None)
+        
+        tmpK=cohen_kappa_score(y_test.ravel(),prediction,labels=label)
                  
-            resultsF1=mean(F1_collect)    
-            resultsK=mean(K_collect)      
-                   
-    return resultsF1,resultsK,K_collect,F1_collect #F1
+        F1_macro_collect.append(tmpf1);tmpf1=[] 
+        F1_micro_collect.append(tmpf1_micro);tmpf1_micro=[] 
+        F1_weight_collect.append(tmpf1_weight);tmpf1_weight=[] 
+        F1_all_collect.append(tmpf1_all);tmpf1_all=[] 
+        
+        K_collect.append(tmpK);tmpK=[]  
+                         
+        resultsF1_maco=mean(F1_macro_collect)
+        resultsF1_micro=mean(F1_micro_collect)
+        resultsF1_weight=mean(F1_weight_collect)
+        resultsF1_all=mean(F1_all_collect)
+        
+        resultsK=mean(K_collect)    
+                  
+return resultsF1_maco,resultsK,resultsF1_micro,resultsF1_weight,resultsF1_all 
         #F1 returns with average='none' a F1 score for each label or macro=meaned
         
                   
