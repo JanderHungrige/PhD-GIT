@@ -57,11 +57,11 @@ consoleinuse='4'
 savepath='/home/310122653/Pyhton_Folder/cECG/Results/'
 
 #### SELECTING THE LABELS FOR SELECTED BABIES
-label=array([1,2,3,4,5,6]) # 1=AS 2=QS 3=Wake 4=Care-taking 5=NA 6= transition
-babies =[0,1,2,3,4,5,6,7,8] #0-9
+label=array([1,2,3]) # 1=AS 2=QS 3=Wake 4=Care-taking 5=NA 6= transition
+babies =[0,1,2,3]#,4,5,6,7,8] #0-9
     
 #### CREATE ALL POSSIBLE COMBINATIONS OUT OF 30 FEATURES. STOP AT Ncombos FEATURE SET(DUE TO SVM COMPUTATION TIME)
-lst = [0,1,2,3,4,5,6,7,8,9,10,11,12,13,15,16,17,18,19,20,21,22,23,24,25,26,27,28,29]
+lst = [0,1,2,3]#,4,5,6,7,8,9,10,11,12,13,15,16,17,18,19,20,21,22,23,24,25,26,27,28,29]
 lst_old=[3,4,5,6,7,8,9,10,11,13,15,16,17,18,19,20,21,22,23,24,25,26] # From first paper to compare with new features
 #lst=lst_old
 """
@@ -114,7 +114,7 @@ if preGridsearch:
     # for final gridsearch use the labels you are investigating
 #
     gridC=float64([1,4,10,100,1000])
-    gridY=float64([1,0.5,0.1,0.05,001,0.005,0001,0.0005,0.0001])
+    gridY=float64([1,0.5,0.1,0.05,0.01,0.005,0.001,0.0005,0.0001])
     [c,gamma]=GridSearch_all(plotting_grid,gridC,gridY,lst,label,babies,AnnotMatrix_each_patient,FeatureMatrix_each_patient,classweight)
     disp(c);disp(gamma)
     sys.exit('Jan werth first gridsearch')
@@ -255,7 +255,7 @@ for V in range(len(babies)):
     ValidatedPerformance_weigth.append(resultsF1_weight)    
     ValidatedPerformance_all.append(resultsF1_all)
 
-    BiasInfluence.append(Performance[V]-ValidatedPerformance[V])   
+    BiasInfluence.append(Performance[V]-ValidatedPerformance_micro[V])   
     
 """
 CHOOSE COMMON FEATURES
@@ -281,7 +281,7 @@ Xfeat_final=[val[idx[sb],:] for sb, val in enumerate(Xfeat_final)]   #selecting 
 
 if finalGridsearch:   
     gridC=float64([1,4,10,100,1000])
-    gridY=float64([3,1,0.5,0.1,0.05,001,0.005,0001,0.0005,0.0001])
+    gridY=float64([3,1,0.5,0.1,0.05,0.01,0.005,0.001,0.0005,0.0001])
     [c,gamma]=GridSearch_commonFeatures(plotting_grid,gridC,gridY,lst,label,Xfeat_final,y_each_patient,selected_babies,classweight)
     print('The final choosen C and gamma are: C: %.2f gamma: %.2f'%(c,gamma))
 #    sys.exit('Jan werth final Gridsearch')

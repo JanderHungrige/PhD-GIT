@@ -108,7 +108,7 @@ def GridSearch_commonFeatures(plotting_grid,gridC,gridY,lst,label,Xfeat,y_each_p
             result=Classifier_routine_no_sampelWeight(Xfeat,y_each_patient,selected_babies,label,classweight,gridC[C],gridY[Y])\
             [2]# 0-4 at the moment: macro micro weight all kappa #[0] says take only first return value from function
             print(' Result %.3f' % result)
-            pdb.set_trace()
+#            pdb.set_trace()
             differnt_c_y_results[C,Y]=result
 #            differnt_y_results=[differnt_y_results,result] # create column for each Y
             
