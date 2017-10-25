@@ -54,14 +54,26 @@ def Classifier_routine_no_sampelWeight(Xfeat,y_each_patient,selected_babies,labe
         
     #CALCULATE THE WEIGHTS DUE TO CLASS IMBALANCE
         class_weight='balanced'
-        classes=label
-        classlabels=ravel(y_test) # y_test has to be a 1d array for compute_class_weight
-        if (classweight==1):# as baby 7 does not have two classes, it is not unbalnced
-            cW=compute_class_weight(class_weight, classes, classlabels)
+        classlabels=ravel(y_test) # y_test has to be a 1d array for compute_class_weight       
+        
+        # Now test if all labels are actually in the data. Otheriwse error with compute_class_weight. If not make the found labels the newe labels. If the new label is 1 then classsification does not work, therefore skip class_weigth , therefore CW       
+        if (classweight==1) and len(unique(classlabels))==len(label):
+            cW=compute_class_weight(class_weight, label, classlabels)
             cWdict={1:cW[0]};cWdict={2:cW[1]} #the class weight need to be a dictionarry of the form:{class_label : value}
+            CW=1
+        elif(classweight==1) and len(unique(classlabels))!=len(label):
+            CW_label=unique(classlabels) #which values arein an array
+            if len(CW_label)==1:                
+                print('classweight config skiped once as only one class exist')
+                CW=0
+            else:
+                print('used labels are:',CW_label, 'instead of:',label)            
+                cW=compute_class_weight(class_weight, CW_label, classlabels)
+                cWdict={1:cW[0]};cWdict={2:cW[1]} #the class weight need to be a dictionarry of the form:{class_label : value}            
+                CW=1
             
     #THE SVM
-        if (classweight==1):# and (Selected_test!=7):# as baby 7 does not have two classes, it is not unbalnced
+        if (classweight==1) and CW==1: 
              clf = svm.SVC(kernel='rbf',gamma=gamma, C=C, class_weight=cWdict,cache_size=500, probability=True, random_state=42)
         else:
              clf = svm.SVC(kernel='rbf',gamma=gamma, C=C,cache_size=500, probability=True, random_state=42)
@@ -141,25 +153,35 @@ def Classifier_routine_with_sampleWeight(Xfeat,y_each_patient,selected_babies,la
         
     #CALCULATE THE WEIGHTS DUE TO CLASS IMBALANCE
         class_weight='balanced'
-        classes=label
-        classlabels=ravel(y_test) # y_test has to be a 1d array for compute_class_weight
-        if (classweight==1):# and (Selected_test!=7):# as baby 7 does not have two classes, it is not unbalnced
-            cW=compute_class_weight(class_weight, classes, classlabels)
+        classlabels=ravel(y_test) # y_test has to be a 1d array for compute_class_weight       
+        
+        # Now test if all labels are actually in the data. Otheriwse error with compute_class_weight. If not make the found labels the newe labels. If the new label is 1 then classsification does not work, therefore skip class_weigth , therefore CW       
+        if (classweight==1) and len(unique(classlabels))==len(label):
+            cW=compute_class_weight(class_weight, label, classlabels)
             cWdict={1:cW[0]};cWdict={2:cW[1]} #the class weight need to be a dictionarry of the form:{class_label : value}
-        if (sampleWeights==1):# and (Selected_test!=7):# as baby 7 does not have two classes, it is not unbalnced
-            smplwght=compute_sample_weight(class_weight, classes)
-                        
+            CW=1
+        elif(classweight==1) and len(unique(classlabels))!=len(label):
+            CW_label=unique(classlabels) #which values arein an array
+            if len(CW_label)==1:                
+                print('classweight config skiped once as only one class exist')
+                CW=0
+            else:
+                print('used labels are:',CW_label, 'instead of:',label)            
+                cW=compute_class_weight(class_weight, CW_label, classlabels)
+                cWdict={1:cW[0]};cWdict={2:cW[1]} #the class weight need to be a dictionarry of the form:{class_label : value}            
+                CW=1
             
     #THE SVM
-        if (classweight==1)and (sampleWeights==0):# and (Selected_test!=7) :# as baby 7 does not have two classes, it is not unbalnced
+        if (classweight==1) and CW==1 and (sampleWeights==0):
              clf = svm.SVC(kernel='rbf', class_weight=cWdict, probability=True, random_state=42)
-        elif (classweight==0) and (sampleWeights==0):
-            clf = svm.SVC(kernel='rbf',gamma=0.2, C=1, probability=True, random_state=42)
         elif(classweight==0) and (sampleWeights==1):
              clf = svm.SVC(kernel='rbf',gamma=0.2, C=1, sample_weight=smplwght, probability=True, random_state=42)
-        elif(classweight==1)  and (sampleWeights==1): #and (Selected_test!=7): 
+        elif(classweight==1) and CW==1 and (sampleWeights==1): #and (Selected_test!=7): 
              clf = svm.SVC(kernel='rbf', class_weight=cWdict, sample_weight=smplwght, probability=True, random_state=42)
-                   
+        else:
+            clf = svm.SVC(kernel='rbf',gamma=0.2, C=1, probability=True, random_state=42)
+            
+     
         probas_=clf.fit(X_train,y_train).predict_proba(X_test)  
         
 #Performance analysis        
@@ -219,14 +241,26 @@ def Validate_with_classifier(Xfeat,y_each_patient,selected_babies,selected_valid
     
 #CALCULATE THE WEIGHTS DUE TO CLASS IMBALANCE
     class_weight='balanced'
-    classes=label
-    classlabels=ravel(y_test) # y_test has to be a 1d array for compute_class_weight
-    if (classweight==1):# as baby 7 does not have two classes, it is not unbalnced
-        cW=compute_class_weight(class_weight, classes, classlabels)
+    classlabels=ravel(y_test) # y_test has to be a 1d array for compute_class_weight       
+    
+    # Now test if all labels are actually in the data. Otheriwse error with compute_class_weight. If not make the found labels the newe labels. If the new label is 1 then classsification does not work, therefore skip class_weigth , therefore CW       
+    if (classweight==1) and len(unique(classlabels))==len(label):
+        cW=compute_class_weight(class_weight, label, classlabels)
         cWdict={1:cW[0]};cWdict={2:cW[1]} #the class weight need to be a dictionarry of the form:{class_label : value}
-        
-#THE SVM
-    if (classweight==1):# and (Selected_test!=7):# as baby 7 does not have two classes, it is not unbalnced
+        CW=1
+    elif(classweight==1) and len(unique(classlabels))!=len(label):
+        CW_label=unique(classlabels) #which values arein an array
+        if len(CW_label)==1:                
+            print('classweight config skiped once as only one class exist')
+            CW=0
+        else:
+            print('used labels are:',CW_label, 'instead of:',label)            
+            cW=compute_class_weight(class_weight, CW_label, classlabels)
+            cWdict={1:cW[0]};cWdict={2:cW[1]} #the class weight need to be a dictionarry of the form:{class_label : value}            
+            CW=1
+            
+    #THE SVM
+    if (classweight==1) and CW==1: 
          clf = svm.SVC(kernel='rbf',gamma=gamma, C=C, class_weight=cWdict, cache_size=500,probability=True, random_state=42)
     else:
          clf = svm.SVC(kernel='rbf',gamma=gamma, C=C, probability=True,cache_size=500, random_state=42)
