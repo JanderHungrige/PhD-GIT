@@ -57,7 +57,7 @@ consoleinuse='4'
 savepath='/home/310122653/Pyhton_Folder/cECG/Results/'
 
 #### SELECTING THE LABELS FOR SELECTED BABIES
-label=array([1,2,3,4,5,6]) # 1=AS 2=QS 3=Wake 4=Care-taking 5=NA 6= transition
+label=array([1,2]) # 1=AS 2=QS 3=Wake 4=Care-taking 5=NA 6= transition
 babies =[0,1,2,3,4,5,6,7,8] #0-8
     
 #### CREATE ALL POSSIBLE COMBINATIONS OUT OF 30 FEATURES. STOP AT Ncombos FEATURE SET(DUE TO SVM COMPUTATION TIME)
@@ -70,7 +70,7 @@ CHANGE THE DATASET IN Loading_5min_mat_files_cECG.py IF USING ECG OR cECG
 **************************************************************************
 """
 
-classweight=0 # If classweights should be automatically determined and used for trainnig use: 1 else:0
+classweight=0 # If classweights should be automatically ('balanced') determined and used for trainnig use: 0; IF they should be calculated by own function use 1
 saving=0
 Ncombos=1
 preGridsearch=0
@@ -88,7 +88,7 @@ ValidatedPerformance_macro=list()
 ValidatedPerformance_K=list()
 ValidatedPerformance_micro=list()
 ValidatedPerformance_weigth=list()  
-ValidatedPerformance_all=list()
+ValidatedPerformance_all=zeros(shape=(len(babies),len(label)))
 BiasInfluence=list()
 #for i in range(1, len(lst)+1):
         
@@ -114,7 +114,7 @@ if preGridsearch:
     # for final gridsearch use the labels you are investigating
 #
     gridC=float64([1,4,10,100,1000])
-    gridY=float64([1,0.5,0.1,0.05,0.01,0.005,0.001,0.0005,0.0001])
+    gridY=float64([10,3,1,0.5,0.1,0.05,0.01,0.005,0.001,0.0005,0.0001])
     [c,gamma]=GridSearch_all(plotting_grid,gridC,gridY,lst,label,babies,AnnotMatrix_each_patient,FeatureMatrix_each_patient,classweight)
     disp(c);disp(gamma)
     sys.exit('Jan werth first gridsearch')
@@ -193,7 +193,7 @@ for V in range(len(babies)):
             resultsF1_maco,resultsK,resultsF1_micro,resultsF1_weight,resultsF1_all \
             =Classifier_routine_no_sampelWeight(Xfeat,y_each_patient,selected_babies,label,classweight,c,gamma)
 
-            collected_mean_auc_new.append(resultsF1_micro)
+            collected_mean_auc_new.append(resultsK)
             
             lst2=selectedF[:]  # reset lst2 
                    
@@ -253,7 +253,7 @@ for V in range(len(babies)):
     ValidatedPerformance_K.append(resultsK)
     ValidatedPerformance_micro.append(resultsF1_micro)
     ValidatedPerformance_weigth.append(resultsF1_weight)    
-    ValidatedPerformance_all.append(resultsF1_all)
+    ValidatedPerformance_all[V]=resultsF1_all
 
     BiasInfluence.append(Performance[V]-ValidatedPerformance_micro[V])   
     
@@ -280,8 +280,8 @@ Xfeat_final=[val[idx[sb],:] for sb, val in enumerate(Xfeat_final)]   #selecting 
 
 
 if finalGridsearch:   
-    gridC=float64([1,2])#,4,10,100,1000])
-    gridY=float64([3,1,])#0.5,0.1,0.05,0.01,0.005,0.001,0.0005,0.0001])
+    gridC=float64([1,2,4,10,100])
+    gridY=float64([3,1,0.5,0.1,0.05,0.01,0.005,0.001,0.0005,0.0001])
     [c,gamma]=GridSearch_commonFeatures(plotting_grid,gridC,gridY,lst,label,Xfeat_final,y_each_patient,selected_babies,classweight)
     print('The final choosen C and gamma are: C: %.2f gamma: %.2f'%(c,gamma))
 #    sys.exit('Jan werth final Gridsearch')
@@ -308,9 +308,11 @@ if saving:
     save(savepath + 'resultsK_test' + description, resultsK_test)     
     save(savepath + 'resultsF1_micro_test' + description, resultsF1_micro_test)     
     save(savepath + 'resultsF1_weight_test' + description, resultsF1_weight_test)     
-    save(savepath + 'resultsF1_all_test' + description, resultsF1_all_test)     
-     
-    import scipy.io as sio
+    save(savepath + 'resultsF1_all_test' + description, resultsF1_all_test)  
+    
+    save(savepath + 'C' + description, c) 
+    save(savepath + 'gamma' + description, gamma)  
+#    import scipy.io as sio
     #sio.savemat('C:/Users/310122653/Dropbox/PHD/python/cECG/Results/', bestAUCs)        
 
 import time
@@ -318,6 +320,9 @@ t=time.localtime()
 zeit=time.asctime()
 print('FINISHED Console ' + consoleinuse)
 print("--- %i seconds ---" % (time.time() - start_time))
+print("--- %i min ---" % (time.time() - start_time)/60)
+print("--- %i h ---" % (time.time() - start_time)/3600)
+
 if saving:
     print("saved at: %s" %zeit)
 print("Console 1 : "); print(description)

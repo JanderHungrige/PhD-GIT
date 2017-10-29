@@ -23,6 +23,10 @@ from sklearn.cross_validation import KFold
 from sklearn import tree
 from sklearn.ensemble import RandomForestClassifier
 from sklearn.ensemble import ExtraTreesClassifier
+from sklearn.ensemble import GradientBoostingClassifier
+import xgboost as xgb
+from xgboost.sklearn import XGBClassifier
+#from xgboost import XGBClassifier
 from sklearn.metrics import accuracy_score 
 from sklearn.metrics import confusion_matrix
 from sklearn.metrics import roc_curve, auc
@@ -63,7 +67,7 @@ def Classifier_routine_no_sampelWeight(Xfeat,y_each_patient,selected_babies,labe
         # Now test if all labels are actually in the data. Otheriwse error with compute_class_weight. If not make the found labels the newe labels. If the new label is 1 then classsification does not work, therefore skip class_weigth , therefore CW       
         if (classweight==1) and len(unique(classlabels))==len(label):
             cW=compute_class_weight(class_weight, label, classlabels)
-            cWdict={1:cW[0]};cWdict={2:cW[1]} #the class weight need to be a dictionarry of the form:{class_label : value}
+            cWdict=dict(zip(range(len(label)),cW))#the class weight need to be a dictionarry of the form:{class_label : value}
             CW=1
         elif(classweight==1) and len(unique(classlabels))!=len(label):
             CW_label=unique(classlabels) #which values arein an array
@@ -73,7 +77,7 @@ def Classifier_routine_no_sampelWeight(Xfeat,y_each_patient,selected_babies,labe
             else:
                 print('used labels are:',CW_label, 'instead of:',label)            
                 cW=compute_class_weight(class_weight, CW_label, classlabels)
-                cWdict={1:cW[0]};cWdict={2:cW[1]} #the class weight need to be a dictionarry of the form:{class_label : value}            
+                cWdict=dict(zip(range(len(label)),cW))#the class weight need to be a dictionarry of the form:{class_label : value}
                 CW=1
             
     #THE SVM
@@ -119,6 +123,7 @@ def Classifier_routine_no_sampelWeight(Xfeat,y_each_patient,selected_babies,labe
 
 ###########################################################################################################    
 ###########################################################################################################    
+#%%
 """
 With Sample weights
 """
@@ -143,7 +148,7 @@ def Classifier_routine_with_sampleWeight(Xfeat,y_each_patient,selected_babies,la
     mean_tpr = 0.0;mean_fpr = np.linspace(0, 1, 100)
     F1_macro_collect=[];F1_micro_collect=[];F1_weight_collect=[];F1_all_collect=[];K_collect=[]
     #CREATING TEST AND TRAIN SETS
-    for j in range(len(selected_babies)):
+    for j in range(len(selected_babies)):            
         print('.' , sep=' ', end='', flush=True)          
         Selected_training=delete(selected_babies,selected_babies[j])# Babies to train on 0-7
         Selected_validate=summation-sum(Selected_training) #Babie to test on
@@ -160,20 +165,20 @@ def Classifier_routine_with_sampleWeight(Xfeat,y_each_patient,selected_babies,la
         classlabels=ravel(y_validate) # y_validate has to be a 1d array for compute_class_weight       
         
         # Now test if all labels are actually in the data. Otheriwse error with compute_class_weight. If not make the found labels the newe labels. If the new label is 1 then classsification does not work, therefore skip class_weigth , therefore CW       
-        if (classweight==1) and len(unique(classlabels))==len(label):
-            cW=compute_class_weight(class_weight, label, classlabels)
-            cWdict={1:cW[0]};cWdict={2:cW[1]} #the class weight need to be a dictionarry of the form:{class_label : value}
+       if (classweight==1) and len(unique(classlabels))==len(label):
+              cW=compute_class_weight(class_weight, label, classlabels)
+              cWdict=dict(zip(range(len(label)),cW))#the class weight need to be a dictionarry of the form:{class_label : value}
+              CW=1
+       elif(classweight==1) and len(unique(classlabels))!=len(label):
+              CW_label=unique(classlabels) #which values arein an array
+       if len(CW_label)==1:                
+              print('classweight config skiped once as only one class exist')
+              CW=0
+       else:
+            print('used labels are:',CW_label, 'instead of:',label)            
+            cW=compute_class_weight(class_weight, CW_label, classlabels)
+            cWdict=dict(zip(range(len(CW_label)),cW))#the class weight need to be a dictionarry of the form:{class_label : value}
             CW=1
-        elif(classweight==1) and len(unique(classlabels))!=len(label):
-            CW_label=unique(classlabels) #which values arein an array
-            if len(CW_label)==1:                
-                print('classweight config skiped once as only one class exist')
-                CW=0
-            else:
-                print('used labels are:',CW_label, 'instead of:',label)            
-                cW=compute_class_weight(class_weight, CW_label, classlabels)
-                cWdict={1:cW[0]};cWdict={2:cW[1]} #the class weight need to be a dictionarry of the form:{class_label : value}            
-                CW=1
             
     #THE SVM
         if (classweight==1) and CW==1 and (sampleWeights==0):
@@ -183,7 +188,7 @@ def Classifier_routine_with_sampleWeight(Xfeat,y_each_patient,selected_babies,la
         elif(classweight==1) and CW==1 and (sampleWeights==1): 
              clf = svm.SVC(kernel='rbf', class_weight=cWdict, sample_weight=smplwght, probability=True, random_state=42)
         else:
-            clf = svm.SVC(kernel='rbf',gamma=0.2, C=1, probability=True, random_state=42)
+            clf = svm.SVC(kernel='rbf',gamma=0.2, C=1,probability=True, random_state=42)
             
      
         probas_=clf.fit(X_train,y_train).predict_proba(X_validate)  
@@ -217,11 +222,12 @@ def Classifier_routine_with_sampleWeight(Xfeat,y_each_patient,selected_babies,la
             resultsF1_all=mean(F1_all_collect)
             
             resultsK=mean(K_collect)    
-                      
+               
     return resultsF1_maco,resultsK,resultsF1_micro,resultsF1_weight,resultsF1_all #F1
             #F1 returns with average='none' a F1 score for each label or macro=meaned
 ###########################################################################################################    
 ###########################################################################################################   
+#%%
 """"
 VALIDATION
 """             
@@ -249,7 +255,7 @@ def Validate_with_classifier(Xfeat,y_each_patient,selected_babies,selected_test,
     # Now test if all labels are actually in the data. Otheriwse error with compute_class_weight. If not make the found labels the newe labels. If the new label is 1 then classsification does not work, therefore skip class_weigth , therefore CW       
     if (classweight==1) and len(unique(classlabels))==len(label):
         cW=compute_class_weight(class_weight, label, classlabels)
-        cWdict={1:cW[0]};cWdict={2:cW[1]} #the class weight need to be a dictionarry of the form:{class_label : value}
+        cWdict=dict(zip(range(len(label)),cW))#the class weight need to be a dictionarry of the form:{class_label : value}
         CW=1
     elif(classweight==1) and len(unique(classlabels))!=len(label):
         CW_label=unique(classlabels) #which values arein an array
@@ -259,14 +265,14 @@ def Validate_with_classifier(Xfeat,y_each_patient,selected_babies,selected_test,
         else:
             print('used labels are:',CW_label, 'instead of:',label)            
             cW=compute_class_weight(class_weight, CW_label, classlabels)
-            cWdict={1:cW[0]};cWdict={2:cW[1]} #the class weight need to be a dictionarry of the form:{class_label : value}            
+            cWdict=dict(zip(range(len(CW_label)),cW))#the class weight need to be a dictionarry of the form:{class_label : value}
             CW=1
             
     #THE SVM
     if (classweight==1) and CW==1: 
          clf = svm.SVC(kernel='rbf',gamma=gamma, C=C, class_weight=cWdict, cache_size=500,probability=True, random_state=42)
     else:
-         clf = svm.SVC(kernel='rbf',gamma=gamma, C=C, probability=True,cache_size=500, random_state=42)
+         clf = svm.SVC(kernel='rbf',gamma=gamma, C=C, cache_size=500, probability=True,random_state=42)
         
 #Performance analysis        
 #        sys.exit('Jan werth')
@@ -300,10 +306,14 @@ def Validate_with_classifier(Xfeat,y_each_patient,selected_babies,selected_test,
                   
     return resultsF1_maco,resultsK,resultsF1_micro,resultsF1_weight,resultsF1_all 
         #F1 returns with average='none' a F1 score for each label or macro=meaned
+###########################################################################################################    
+########################################################################################################### 
+#%%
 '''
 Random Forrest     
 '''   
-def Classifier_random_forest(Xfeat,y_each_patient,selected_babies,selected_test,label,classweight,Used_classifier,drawing):
+def Classifier_random_forest(Xfeat_test, Xfeat,y_each_patient_test, y_each_patient, selected_babies, \
+                              selected_test, label,classweight, Used_classifier, drawing, lst):
 #### CREATING THE sampleweight FOR SELECTED BABIES  
 #### TRAIN CLASSIFIER
     meanaccLOO=[];accLOO=[];testsubject=[];tpr_mean=[];counter=0;
@@ -315,19 +325,20 @@ def Classifier_random_forest(Xfeat,y_each_patient,selected_babies,selected_test,
     Selected_training=selected_babies
     X_train= [Xfeat[np.where(np.array(selected_babies)==k)[0][0]] for k in Selected_training] # combine only babies to train on in list
     y_train=[y_each_patient[np.where(np.array(selected_babies)==k)[0][0]] for k in Selected_training]
+    
+    X_test=Xfeat_test[selected_test]
+    y_test=y_each_patient_test[selected_test]
+
     X_train= vstack(X_train) # mergin the data from each list element into one matrix 
-    X_test=Xfeat[selected_test]
     y_train=vstack(y_train)
-    y_test=y_each_patient[selected_test]
     
 #CALCULATE THE WEIGHTS DUE TO CLASS IMBALANCE
     class_weight='balanced'
     classlabels=ravel(y_test) # y_test has to be a 1d array for compute_class_weight       
-    
     # Now test if all labels are actually in the data. Otheriwse error with compute_class_weight. If not make the found labels the newe labels. If the new label is 1 then classsification does not work, therefore skip class_weigth , therefore CW       
     if (classweight==1) and len(unique(classlabels))==len(label):
         cW=compute_class_weight(class_weight, label, classlabels)
-        cWdict={1:cW[0]};cWdict={2:cW[1]} #the class weight need to be a dictionarry of the form:{class_label : value}
+        cWdict=dict(zip(range(len(label)),cW))#the class weight need to be a dictionarry of the form:{class_label : value}
         CW=1
     elif(classweight==1) and len(unique(classlabels))!=len(label):
         CW_label=unique(classlabels) #which values arein an array
@@ -337,59 +348,186 @@ def Classifier_random_forest(Xfeat,y_each_patient,selected_babies,selected_test,
         else:
             print('used labels are:',CW_label, 'instead of:',label)            
             cW=compute_class_weight(class_weight, CW_label, classlabels)
-            cWdict={1:cW[0]};cWdict={2:cW[1]} #the class weight need to be a dictionarry of the form:{class_label : value}            
+            cWdict=dict(zip(range(len(CW_label)),cW))#the class weight need to be a dictionarry of the form:{class_label : value}
             CW=1
+            
+
+            
+            
     #The Random Forest / Extreme Random Forest
-    
-    tree.DecisionTreeClassifier
+    N=100
+    crit='gini' #gini or entropy
+    msl=3  #min_sample_leafe
+
     if Used_classifier=='TR':
         if (classweight==1) and CW==1: 
-             clf = tree.DecisionTreeClassifier(criterion="gini", splitter="best", max_depth=None,\
-                                               min_samples_split=2, min_samples_leaf=1, \
+             clf = tree.DecisionTreeClassifier(criterion=crit, splitter="best", max_depth=None,\
+                                               min_samples_split=2, min_samples_leaf=msl, \
                                                min_weight_fraction_leaf=0.0, max_features=None, \
-                                               random_state=None, max_leaf_nodes=None, min_impurity_decrease=0.0,\
+                                               random_state=42, max_leaf_nodes=None, min_impurity_decrease=0.0,\
                                                min_impurity_split=None, class_weight=cWdict, presort=False)
                            
         else:
-             clf = tree.DecisionTreeClassifier(criterion="gini", splitter="best", max_depth=None,\
-                                               min_samples_split=2, min_samples_leaf=1, \
+             clf = tree.DecisionTreeClassifier(criterion=crit, splitter="best", max_depth=None,\
+                                               min_samples_split=2, min_samples_leaf=msl, \
                                                min_weight_fraction_leaf=0.0, max_features=None, \
-                                               random_state=None, max_leaf_nodes=None, min_impurity_decrease=0.0,\
-                                               min_impurity_split=None, class_weight=None, presort=False)   
+                                               random_state=42, max_leaf_nodes=None, min_impurity_decrease=0.0,\
+                                               min_impurity_split=None,  presort=False)   
     
     
     if Used_classifier=='RF':
         if (classweight==1) and CW==1: 
-             clf = RandomForestClassifier(n_estimators=10, criterion="gini", max_depth=None, \
-                                          min_samples_split=2, min_samples_leaf=1, min_weight_fraction_leaf=0.0,\
+             clf = RandomForestClassifier(n_estimators=N, criterion=crit, max_depth=None, \
+                                          min_samples_split=2, min_samples_leaf=msl, min_weight_fraction_leaf=0.0,\
                                           max_features="auto", max_leaf_nodes=None, min_impurity_decrease=0.0,\
                                           min_impurity_split=None, bootstrap=True, oob_score=False,\
                                           n_jobs=1, random_state=42, verbose=0, warm_start=False,\
                                           class_weight=cWdict)
                            
         else:
-             clf = RandomForestClassifier(n_estimators=10, criterion="gini", max_depth=None, \
-                                          min_samples_split=2, min_samples_leaf=1, min_weight_fraction_leaf=0.0,\
+             clf = RandomForestClassifier(n_estimators=N, criterion=crit, max_depth=None, \
+                                          min_samples_split=2, min_samples_leaf=msl, min_weight_fraction_leaf=0.0,\
                                           max_features="auto", max_leaf_nodes=None, min_impurity_decrease=0.0,\
                                           min_impurity_split=None, bootstrap=True, oob_score=False,\
                                           n_jobs=1, random_state=42, verbose=0, warm_start=False,\
-                                          class_weight=None)
+                                          )
     elif Used_classifier=='ERF':         
         if (classweight==1) and CW==1: 
-             clf = ExtraTreesClassifier(n_estimators=10, criterion="gini", max_depth=None,\
-                                          min_samples_split=2, min_samples_leaf=1, min_weight_fraction_leaf=0.0,\
+             clf = ExtraTreesClassifier(n_estimators=N, criterion=crit, max_depth=None,\
+                                          min_samples_split=2, min_samples_leaf=msl, \
                                           max_features="auto", max_leaf_nodes=None, min_impurity_decrease=0.0,\
                                           min_impurity_split=None, bootstrap=True, oob_score=False,\
                                           n_jobs=1, random_state=42, verbose=0, warm_start=False,\
                                           class_weight=cWdict)
         else:
-             clf = ExtraTreesClassifier(n_estimators=10, criterion="gini", max_depth=None,\
-                                          min_samples_split=2, min_samples_leaf=1, min_weight_fraction_leaf=0.0,\
+             clf = ExtraTreesClassifier(n_estimators=N, criterion=crit, max_depth=None,\
+                                          min_samples_split=2, min_samples_leaf=msl, min_weight_fraction_leaf=0.0,\
                                           max_features="auto", max_leaf_nodes=None, min_impurity_decrease=0.0,\
                                           min_impurity_split=None, bootstrap=True, oob_score=False,\
                                           n_jobs=1, random_state=42, verbose=0, warm_start=False,\
-                                          class_weight=None)         
+                                          )
+    elif Used_classifier=='GB':
+      clf = GradientBoostingClassifier(loss="deviance", learning_rate=0.1, n_estimators=1000, subsample=1, \
+                          criterion='friedman_mse', min_samples_split=2, min_samples_leaf=1, min_weight_fraction_leaf=0.0,\
+                          max_depth=30, min_impurity_decrease=0.0, min_impurity_split=None, init=None, \
+                          random_state=42, max_features=None, verbose=0, max_leaf_nodes=None, warm_start=False, presort='auto')
         
+                    
+       
+        
+#Performance analysis        
+#        sys.exit('Jan werth')
+    if len(label)<2:
+        print("please use at least two labels")
+        
+ # F1 Kappa
+    else: 
+        prediction=clf.fit(X_train,y_train.ravel()).predict(X_test) # prediction decide on 0.5 proability which class to take
+        probabs=clf.fit(X_train,y_train.ravel()).predict_proba(X_test) # with the calculated probabilities we can choose our own threshold
+        
+        scoring=clf.score(X_test, y_test.ravel(),  sample_weight=None)
+        Fimportances=clf.feature_importances_
+        if Used_classifier!='GB':
+               Dpath=clf.decision_path(X_train)        
+        
+        resultsF1_macro=f1_score(y_test.ravel(), prediction, average='macro')#, pos_label=None)
+        resultsF1_micro=f1_score(y_test.ravel(), prediction,average='micro')
+        resultsF1_weight=f1_score(y_test.ravel(), prediction,average='weighted')
+        resultsF1_all=f1_score(y_test.ravel(), prediction,labels=label, average=None)#, pos_label=None)
+        
+        resultsK=cohen_kappa_score(y_test.ravel(),prediction,labels=label)
+        
+        if drawing and Used_classifier=='TR':
+               import graphviz                     
+               from Loading_5min_mat_files_cECG import Class_dict,features_dict
+               usedfeatures=list((features_dict[k]) for k in lst) #create a dict only with the usedfeatures in lst out of all which are in features_dict
+               usedlabels=list((Class_dict[k]) for k in label) #create a dict only with the usedfeatures in lst out of all which are in features_dict
+        
+               with open("RF.txt", "w") as f:
+                      f = tree.export_graphviz(clf, out_file=f,feature_names=usedfeatures,class_names=usedlabels,filled=True, rounded=True )
+#               with open("RF.dot", "w") as f:
+#                      f = tree.export_graphviz(clf, out_file=f)
+               with open("RF.svc", "w") as f:
+                      f = tree.export_graphviz(clf, out_file=f)
+#               dot -Tpdf RF.dot -o RF.pdf
+#               open -a preview RF.pdf
+
+               
+#               dot_data = tree.export_graphviz(clf, out_file=None) 
+#               graph = graphviz.Source(dot_data) 
+#               graph.render("Jan") 
+#              
+#               dot_data = tree.export_graphviz(clf, out_file=None, 
+#                                        feature_names=usedfeatures,  
+#                                        class_names=usedlabels,  
+#                                        filled=True, rounded=True,  
+#                                        special_characters=True)  
+#               graph = graphviz.Source(dot_data)  
+#               graph 
+#                 
+        
+                  
+    return resultsF1_macro,resultsK,resultsF1_micro,resultsF1_weight,resultsF1_all,Fimportances,scoring
+        #F1 returns with average='none' a F1 score for each label or macro=meaned
+        
+###########################################################################################################    
+########################################################################################################### 
+#%%        
+'''
+XGBoost    
+'''   
+def Classifier_XGBoost(Xfeat_test, Xfeat,y_each_patient_test, y_each_patient, selected_babies, \
+                              selected_test, label,classweight, Used_classifier, drawing, lst):
+#### CREATING THE sampleweight FOR SELECTED BABIES  
+#### TRAIN CLASSIFIER
+    meanaccLOO=[];accLOO=[];testsubject=[];tpr_mean=[];counter=0;
+    mean_tpr = 0.0;mean_fpr = np.linspace(0, 1, 100)
+    F1_macro_collect=[];F1_micro_collect=[];F1_weight_collect=[];F1_all_collect=[];K_collect=[]
+
+
+    #CREATING TEST AND TRAIN SETS
+    Selected_training=selected_babies
+    X_train= [Xfeat[np.where(np.array(selected_babies)==k)[0][0]] for k in Selected_training] # combine only babies to train on in list
+    y_train=[y_each_patient[np.where(np.array(selected_babies)==k)[0][0]] for k in Selected_training]
+    
+    X_test=Xfeat_test[selected_test]
+    y_test=y_each_patient_test[selected_test]
+
+    X_train= vstack(X_train) # mergin the data from each list element into one matrix 
+    y_train=vstack(y_train)
+    
+#CALCULATE THE WEIGHTS DUE TO CLASS IMBALANCE
+    class_weight='balanced'
+    classlabels=ravel(y_test) # y_test has to be a 1d array for compute_class_weight       
+    
+    # Now test if all labels are actually in the data. Otheriwse error with compute_class_weight. If not make the found labels the newe labels. If the new label is 1 then classsification does not work, therefore skip class_weigth , therefore CW       
+    if (classweight==1) and len(unique(classlabels))==len(label):
+        cW=compute_class_weight(class_weight, label, classlabels)
+        cWdict=dict(zip(range(len(label)),cW))#the class weight need to be a dictionarry of the form:{class_label : value}
+        CW=1
+    elif(classweight==1) and len(unique(classlabels))!=len(label):
+        CW_label=unique(classlabels) #which values arein an array
+        if len(CW_label)==1:                
+            print('classweight config skiped once as only one class exist')
+            CW=0
+        else:
+            print('used labels are:',CW_label, 'instead of:',label)            
+            cW=compute_class_weight(class_weight, CW_label, classlabels)
+            cWdict=dict(zip(range(len(label)),cW))#the class weight need to be a dictionarry of the form:{class_label : value}
+            CW=1
+            
+    #The Random Forest / Extreme Random Forest
+    N=100
+    crit='gini' #gini or entropy
+    msl=3  #min_sample_leafe
+
+ 
+    if Used_classifier=='XG':
+      clf = XGBClassifier(loss="deviance", learning_rate=0.1, n_estimators=100, subsample=1.0, \
+                          criterion='friedman_mse', min_samples_split=2, min_samples_leaf=1, min_weight_fraction_leaf=0.0,\
+                          max_depth=3, min_impurity_decrease=0.0, min_impurity_split=None, init=None, \
+                          random_state=42, max_features=None, verbose=0, max_leaf_nodes=None, warm_start=False, presort='auto')
+
 #Performance analysis        
 #        sys.exit('Jan werth')
     if len(label)<2:
@@ -409,23 +547,8 @@ def Classifier_random_forest(Xfeat,y_each_patient,selected_babies,selected_test,
         resultsF1_all=f1_score(y_test.ravel(), prediction,labels=label, average=None)#, pos_label=None)
         
         resultsK=cohen_kappa_score(y_test.ravel(),prediction,labels=label)
-        
-        if drawing:
-               import graphviz
-               from Loading_5min_mat_files_cECG import Class_dict,features_dict
-               dot_data = tree.export_graphviz(clf, out_file=None) 
-               graph = graphviz.Source(dot_data) 
-#              graph.render() 
-              
-               dot_data = tree.export_graphviz(clf, out_file=None, 
-                                        feature_names=features_dict,  
-                                        class_names=Class_dict,  
-                                        filled=True, rounded=True,  
-                                        special_characters=True)  
-               graph = graphviz.Source(dot_data)  
-               graph 
-                 
+#       
         
                   
     return resultsF1_macro,resultsK,resultsF1_micro,resultsF1_weight,resultsF1_all,Fimportances,scoring
-        #F1 returns with average='none' a F1 score for each label or macro=meaned
+        #F1 returns with average='none' a F1 score for each label or macro=meaned        
