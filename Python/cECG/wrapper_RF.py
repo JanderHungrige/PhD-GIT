@@ -61,7 +61,7 @@ consoleinuse='4'
 savepath='/home/310122653/Pyhton_Folder/cECG/Results/'
 
 #### SELECTING THE LABELS FOR SELECTED BABIES
-label=array([1,2,4]) # 1=AS 2=QS 3=Wake 4=Care-taking 5=NA 6= transition
+label=array([1,2]) # 1=AS 2=QS 3=Wake 4=Care-taking 5=NA 6= transition
 babies =[0,1,2,3,4,5,6,7,8] #0-8
     
 #### CREATE ALL POSSIBLE COMBINATIONS OUT OF 30 FEATURES. STOP AT Ncombos FEATURE SET(DUE TO SVM COMPUTATION TIME)
@@ -76,8 +76,11 @@ CHANGE THE DATASET IN Loading_5min_mat_files_cECG.py IF USING ECG OR cECG
 
 classweight=1 # If classweights should be automatically ('balanced') determined and used for trainnig use: 0; IF they should be calculated by own function use 1
 saving=0
-Used_classifier='RF' #RF=random forest ; ERF= extreme random forest; TR= Decission tree; GB= Gradient boosting
+Used_classifier='GB' #RF=random forest ; ERF= extreme random forest; TR= Decission tree; GB= Gradient boosting
 drawing=1 # draw a the tree structure
+#For up and downsampling of data
+ChoosenKind=0   # 0-3['regular','borderline1','borderline2','svm'] only when using SMOTE
+SamplingMeth='ADASYN'  # 'SMOTE'  or 'ADASYN'
 
 Performance=list()
 ValidatedPerformance_macro=list()
@@ -120,14 +123,17 @@ for V in range(len(babies)):
     y_each_patient_test=[val[idx_test[sb],:] for sb, val in enumerate(AnnotMatrix_auswahl_test) if sb in range(len(babies))] #get the values for y from idx and label
     Xfeat_test=[val[:,lst] for sb, val in enumerate(FeatureMatrix_auswahl_test)] # using the feature values for features in lst2 to run
     Xfeat_test=[val[idx_test[sb],:] for sb, val in enumerate(Xfeat_test)]  
-    """
-    VALIDATION
-    """        
+     
+
+    # Neighbor based approach, Tomek
+    
+    
+    
     #Validate with left out patient 
     # Run the classifier with the selected FEature subset in selecteF
     resultsF1_macro,resultsK,resultsF1_micro,resultsF1_weight,resultsF1_all,Fimportances,scoring \
     =Classifier_random_forest(Xfeat_test, Xfeat,y_each_patient_test, y_each_patient, selected_babies, \
-                              selected_test, label,classweight, Used_classifier, drawing, lst)
+                              selected_test, label,classweight, Used_classifier, drawing, lst,ChoosenKind,SamplingMeth)
 
 #    =Classifier_random_forest(Xfeat,y_each_patient,selected_babies,label,classweight)       
 #    sys.exit('Jan werth 206')
