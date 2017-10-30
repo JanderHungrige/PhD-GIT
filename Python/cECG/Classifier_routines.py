@@ -40,10 +40,13 @@ from compute_class_weight import*
 from Use_imbalanced_learn import cmplx_Oversampling
 
 import pdb# use pdb.set_trace() as breakpoint
+
+probthres=0.25
 """
 Without Sample weights
 """
-def Classifier_routine_no_sampelWeight(Xfeat,y_each_patient,selected_babies,label,classweight,C,gamma,ChoosenKind,SamplingMeth):
+def Classifier_routine_no_sampelWeight(Xfeat,y_each_patient,selected_babies,label,classweight,C,gamma,\
+                                       ChoosenKind,SamplingMeth,probability_threshold):
 #### TRAIN CLASSIFIER
     meanaccLOO=[];accLOO=[];testsubject=[];tpr_mean=[];counter=0;
     mean_tpr = 0.0;mean_fpr = np.linspace(0, 1, 100)
@@ -61,15 +64,15 @@ def Classifier_routine_no_sampelWeight(Xfeat,y_each_patient,selected_babies,labe
         X_test=Xfeat[Selected_test]
         y_train=vstack(y_train)
         y_test=y_each_patient[Selected_test]
-        
+        y_old=y_train[:]
     
     #SAMPLING TO EQUALIZE CLASS IMBALANCE
     
-        X_train,y_train=cmplx_Oversampling(X_train,y_train,ChoosenKind,SamplingMeth)
+        X_train,y_train=cmplx_Oversampling(X_train,y_train,ChoosenKind,SamplingMeth,label)
         
     #CALCULATE THE WEIGHTS DUE TO CLASS IMBALANCE
         class_weight='balanced'
-        classlabels=ravel(y_train) # y_test has to be a 1d array for compute_class_weight       
+        classlabels=ravel(y_old) # y_test has to be a 1d array for compute_class_weight       
         
         # Now test if all labels are actually in the data. Otheriwse error with compute_class_weight. If not make the found labels the newe labels. If the new label is 1 then classsification does not work, therefore skip class_weigth , therefore CW       
         if (classweight==1) and len(unique(classlabels))==len(label):
@@ -86,7 +89,7 @@ def Classifier_routine_no_sampelWeight(Xfeat,y_each_patient,selected_babies,labe
                 cW=compute_class_weight(class_weight, CW_label, classlabels)
                 cWdict=dict(zip(label,cW))#the class weight need to be a dictionarry of the form:{class_label : value}
                 CW=1
-            
+                           
     #THE SVM
         if (classweight==1) and CW==1: 
              clf = svm.SVC(kernel='rbf',gamma=gamma, C=C, class_weight=cWdict,cache_size=500, probability=True, random_state=42)
@@ -104,6 +107,20 @@ def Classifier_routine_no_sampelWeight(Xfeat,y_each_patient,selected_babies,labe
  # F1 Kappa
         else:        
             prediction=clf.fit(X_train,y_train.ravel()).predict(X_test)
+            probs=(clf.fit(X_train,y_train.ravel()).predict_proba(X_test)) # with the calculated probabilities we can choose our own threshold
+            if probability_threshold: # prediction takes always proability 0.5 to deside. Here we deside based on other way lower proabilities. deciding if any other than AS has slightly elevated probabilities
+                   for i in range(len(probs)):
+                          if len(label)>2:
+                                 if any(probs[i,1:]>=probthres): #IF THE PROBABILITY IS HIGHER THAN ... USE THAT CLASS INSTEAD OF AS
+                                        highprob=np.argmax(probs[i,1:]) # otherwise search for max prob of the labels other than AS
+                                        prediction[i]=label[highprob+1]# change the label in predictions to the new found label; +1 as we cut the array before by 1. Otherwise false index
+                                                                           
+                          elif(probs[i,1])>=probthres: # if we have only two labels searching for max does not work
+                                 prediction[i]=label[1]# CHange the label in prediction to the second label
+                             
+            
+
+                             
     #           F1=f1_score(y_test, probas_[:, 1], labels=list(label), pos_label=2, average=None, sample_weight=None) 
             tmpf1_macro=f1_score(y_test.ravel(), prediction, average='macro')#, pos_label=None)
             tmpf1_micro=f1_score(y_test.ravel(), prediction,average='micro')
@@ -133,7 +150,7 @@ def Classifier_routine_no_sampelWeight(Xfeat,y_each_patient,selected_babies,labe
 """"
 VALIDATION
 """             
-def Validate_with_classifier(Xfeat,y_each_patient,selected_babies,selected_test,label,classweight,C,gamma):
+def Validate_with_classifier(Xfeat,y_each_patient,selected_babies,selected_test,label,classweight,C,gamma,probability_threshold):
   
 #### TRAIN CLASSIFIER
     meanaccLOO=[];accLOO=[];testsubject=[];tpr_mean=[];counter=0;
@@ -152,7 +169,7 @@ def Validate_with_classifier(Xfeat,y_each_patient,selected_babies,selected_test,
     
 #CALCULATE THE WEIGHTS DUE TO CLASS IMBALANCE
     class_weight='balanced'
-    classlabels=ravel(y_train) # y_test has to be a 1d array for compute_class_weight       
+    classlabels=ravel(y_old) # y_test has to be a 1d array for compute_class_weight       
     
     # Now test if all labels are actually in the data. Otheriwse error with compute_class_weight. If not make the found labels the newe labels. If the new label is 1 then classsification does not work, therefore skip class_weigth , therefore CW       
     if (classweight==1) and len(unique(classlabels))==len(label):
@@ -184,7 +201,18 @@ def Validate_with_classifier(Xfeat,y_each_patient,selected_babies,selected_test,
  # F1 Kappa
     else:        
         prediction=clf.fit(X_train,y_train.ravel()).predict(X_test)
-#           F1=f1_score(y_test, probas_[:, 1], labels=list(label), pos_label=2, average=None, sample_weight=None) 
+        probs=(clf.fit(X_train,y_train.ravel()).predict_proba(X_test)) # with the calculated probabilities we can choose our own threshold
+        if probability_threshold: # prediction takes always proability 0.5 to deside. Here we deside based on other way lower proabilities. deciding if any other than AS has slightly elevated probabilities
+               for i in range(len(probs)):
+                      if len(label)>2:
+                             if any(probs[i,1:]>=probthres): #IF THE PROBABILITY IS HIGHER THAN ... USE THAT CLASS INSTEAD OF AS
+                                    highprob=np.argmax(probs[i,1:]) # otherwise search for max prob of the labels other than AS
+                                    prediction[i]=label[highprob+1]# change the label in predictions to the new found label; +1 as we cut the array before by 1. Otherwise false index
+                                                                           
+                      elif(probs[i,1])>=probthres: # if we have only two labels searching for max does not work
+                             prediction[i]=label[1]# CHange the label in prediction to the second label
+                             
+#        F1=f1_score(y_test, probas_[:, 1], labels=list(label), pos_label=2, average=None, sample_weight=None) 
         tmpf1_macro=f1_score(y_test.ravel(), prediction, average='macro')#, pos_label=None)
         tmpf1_micro=f1_score(y_test.ravel(), prediction,average='micro')
         tmpf1_weight=f1_score(y_test.ravel(), prediction,average='weighted')
@@ -215,7 +243,8 @@ def Validate_with_classifier(Xfeat,y_each_patient,selected_babies,selected_test,
 Random Forrest     
 '''   
 def Classifier_random_forest(Xfeat_test, Xfeat,y_each_patient_test, y_each_patient, selected_babies, \
-                              selected_test, label,classweight, Used_classifier, drawing, lst, ChoosenKind, SamplingMeth):
+                              selected_test, label,classweight, Used_classifier, drawing, lst, ChoosenKind,\
+                              SamplingMeth,probability_threshold):
 #### CREATING THE sampleweight FOR SELECTED BABIES  
 #### TRAIN CLASSIFIER
     meanaccLOO=[];accLOO=[];testsubject=[];tpr_mean=[];counter=0;
@@ -231,15 +260,15 @@ def Classifier_random_forest(Xfeat_test, Xfeat,y_each_patient_test, y_each_patie
     y_test=y_each_patient_test[selected_test]
     X_train= vstack(X_train) # mergin the data from each list element into one matrix 
     y_train=vstack(y_train)
-    
+    y_old=y_train[:]
 
 #SAMPLING TO EQUALIZE CLASS IMBALANCE
    
-    X_train,y_train=cmplx_Oversampling(X_train,y_train,ChoosenKind,SamplingMeth)    
+    X_train,y_train=cmplx_Oversampling(X_train,y_train,ChoosenKind,SamplingMeth,label)    
     
 #CALCULATE THE WEIGHTS DUE TO CLASS IMBALANCE
     class_weight='balanced'
-    classlabels=ravel(y_train) # y_test has to be a 1d array for compute_class_weight       
+    classlabels=ravel(y_old) # y_test has to be a 1d array for compute_class_weight       
     # Now test if all labels are actually in the data. Otheriwse error with compute_class_weight. If not make the found labels the newe labels. If the new label is 1 then classsification does not work, therefore skip class_weigth , therefore CW       
     if (classweight==1) and len(unique(classlabels))==len(label):
         cW=compute_class_weight(class_weight, label, classlabels)
@@ -255,9 +284,8 @@ def Classifier_random_forest(Xfeat_test, Xfeat,y_each_patient_test, y_each_patie
             cW=compute_class_weight(class_weight, CW_label, classlabels)
             cWdict=dict(zip(label,cW))#the class weight need to be a dictionarry of the form:{class_label : value}
             CW=1
+           
     disp(cWdict)       
-            
-
             
             
 #The Random Forest / Extreme Random Forest / Gradiant boosting
@@ -329,7 +357,18 @@ def Classifier_random_forest(Xfeat_test, Xfeat,y_each_patient_test, y_each_patie
  # F1 Kappa
     else: 
         prediction=clf.fit(X_train,y_train.ravel()).predict(X_test) # prediction decide on 0.5 proability which class to take
-        probabs=clf.fit(X_train,y_train.ravel()).predict_proba(X_test) # with the calculated probabilities we can choose our own threshold
+        probs=(clf.fit(X_train,y_train.ravel()).predict_proba(X_test)) # with the calculated probabilities we can choose our own threshold
+        if probability_threshold: # prediction takes always proability 0.5 to deside. Here we deside based on other way lower proabilities. deciding if any other than AS has slightly elevated probabilities
+               for i in range(len(probs)):
+                      if len(label)>2:
+                             if any(probs[i,1:]>=probthres): #IF THE PROBABILITY IS HIGHER THAN ... USE THAT CLASS INSTEAD OF AS
+                                    highprob=np.argmax(probs[i,1:]) # otherwise search for max prob of the labels other than AS
+                                    prediction[i]=label[highprob+1]# change the label in predictions to the new found label; +1 as we cut the array before by 1. Otherwise false index
+                                                                           
+                      elif(probs[i,1])>=probthres: # if we have only two labels searching for max does not work
+                             prediction[i]=label[1]# CHange the label in prediction to the second label
+                             
+               
         
         scoring=clf.score(X_test, y_test.ravel(),  sample_weight=None)
         Fimportances=clf.feature_importances_
