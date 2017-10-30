@@ -34,7 +34,8 @@ import pdb # use pdb.set_trace() as breakpoint
 # plotting_grid 1 or 0
 
 
-def GridSearch_all(plotting_grid,gridC,gridY,lst,label,selected_babies,AnnotMatrix_each_patient,FeatureMatrix_each_patient,classweight):
+def GridSearch_all(plotting_grid,gridC,gridY,lst,label,selected_babies,AnnotMatrix_each_patient,\
+                   FeatureMatrix_each_patient,classweight,ChoosenKind,SamplingMeth,probability_threshold,SVMtype,strategie):
     
 
     #### Create Matrices for selected babies
@@ -97,7 +98,8 @@ def GridSearch_all(plotting_grid,gridC,gridY,lst,label,selected_babies,AnnotMatr
     return [c,gamma]
 
 
-def GridSearch_commonFeatures(plotting_grid,gridC,gridY,lst,label,Xfeat,y_each_patient,selected_babies,classweight):
+def GridSearch_commonFeatures(plotting_grid,gridC,gridY,lst,label,Xfeat,y_each_patient,selected_babies,\
+                              classweight,ChoosenKind,SamplingMeth,probability_threshold,SVMtype,strategie):
 
     differnt_c_y_results=numpy.zeros((len(gridC), len(gridY)))
 #    differnt_c_y_results=array([]);differnt_y_results=array([])
@@ -105,8 +107,9 @@ def GridSearch_commonFeatures(plotting_grid,gridC,gridY,lst,label,Xfeat,y_each_p
         for Y in range(len(gridY)):
             print('C:', sep='', end='', flush=True); print(gridC[C], sep='', end='', flush=True)
             print('  Y:', sep='', end='', flush=True); print(gridY[Y], sep='', end='', flush=True)
-            result=Classifier_routine_no_sampelWeight(Xfeat,y_each_patient,selected_babies,label,classweight,gridC[C],gridY[Y])\
-            [2]# 0-4 at the moment: macro micro weight all kappa #[0] says take only first return value from function
+            result=Classifier_routine_no_sampelWeight(Xfeat,y_each_patient,selected_babies,label,classweight,gridC[C],gridY[Y],\
+                                                      ChoosenKind,SamplingMeth,probability_threshold,SVMtype,strategie)\
+                                                      [2]# 0-4 at the moment: macro micro weight all kappa #[0] says take only first return value from function
             print(' Result %.3f' % result)
 #            pdb.set_trace()
             differnt_c_y_results[C,Y]=result

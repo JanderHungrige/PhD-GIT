@@ -84,7 +84,8 @@ drawing=1 # draw a the tree structure
 ChoosenKind=1   # 0-3['regular','borderline1','borderline2','svm'] only when using SMOTE
 SamplingMeth='SMOTE'  # 'SMOTE'  or 'ADASYN'
 probability_threshold=1 # 1 to use different probabilities tan 0.5 to decide on the class. At the moment it is >=0.2 for any other calss then AS
-
+SVMtype='Kernel'  #Kernel or Linear
+strategie='ovr' # or or crammer_singer tochoose for LinearSVM multiclass stragey
 
 combs=[]
 bestAUCs=nan
@@ -97,15 +98,13 @@ ValidatedPerformance_weigth=list()
 ValidatedPerformance_all=zeros(shape=(len(babies),len(label)))
 BiasInfluence=list()
 #for i in range(1, len(lst)+1):
-####Cheking for miss spelling
-if Used_classifier not in Klassifier:
-       sys.exit('Misspelling in Used_classifier')
-       
+####Cheking for miss spelling      
 if SamplingMeth not in SampMeth:
        sys.exit('Misspelling in SamplingMeth')   
        
 """
-START       
+START 
+"""      
 i=1    
 els = [list(x) for x in itertools.combinations(lst, i)]
 combs.extend(els)  
@@ -122,6 +121,7 @@ collected_mean_auc=[]
 
 """ 
 GRID SEARCH FOR C AND GAMMA
+
 """
 if preGridsearch:
     # For pregridsearch take all label
@@ -129,7 +129,8 @@ if preGridsearch:
 #
     gridC=float64([1,4,10,100,1000])
     gridY=float64([10,3,1,0.5,0.1,0.05,0.01,0.005,0.001,0.0005,0.0001])
-    [c,gamma]=GridSearch_all(plotting_grid,gridC,gridY,lst,label,babies,AnnotMatrix_each_patient,FeatureMatrix_each_patient,classweight)
+    [c,gamma]=GridSearch_all(plotting_grid,gridC,gridY,lst,label,babies,AnnotMatrix_each_patient,FeatureMatrix_each_patient,classweight,\
+                                ChoosenKind,SamplingMeth,probability_threshold,SVMtype,strategie)
     disp(c);disp(gamma)
     sys.exit('Jan werth first gridsearch')
     
@@ -168,7 +169,7 @@ for V in range(len(babies)):
         
         resultsF1_maco,resultsK,resultsF1_micro,resultsF1_weight,resultsF1_all \
         =Classifier_routine_no_sampelWeight(Xfeat,y_each_patient,selected_babies,label,classweight,c,gamma,\
-                                            ChoosenKind,SamplingMeth,probability_threshold)
+                                            ChoosenKind,SamplingMeth,probability_threshold,SVMtype,strategie)
         collected_mean_auc.append(resultsF1_micro) # This collects the mean AUC of each itteration. As we want to know whcih combination is the best, we collect all mean AUCs and search for the maximum later
         print('BF Round: %i of:%i' %(Fc+1,len(combs_short)))    
            
@@ -207,7 +208,7 @@ for V in range(len(babies)):
         
             resultsF1_maco,resultsK,resultsF1_micro,resultsF1_weight,resultsF1_all \
             =Classifier_routine_no_sampelWeight(Xfeat,y_each_patient,selected_babies,label,classweight,c,gamma,\
-                                                ChoosenKind,SamplingMeth,probability_threshold)
+                                                ChoosenKind,SamplingMeth,probability_threshold,SVMtype,strategie)
 
             collected_mean_auc_new.append(resultsK)
             
@@ -231,10 +232,11 @@ for V in range(len(babies)):
             else:
                 print('max F1|Kappa: %.4f' %m); print('Subset: '); print(selectedF); print('')                      
         else:
-            counter=counter+1
-            tmpF=selectedF[:]# coppy selected features. Put more Features into them for trial           
-            tmpF+=[addition]# add new found feature to the trial set
             
+            tmpF=selectedF[:]# coppy selected features. Put more Features into them for trial     
+            if 'addition' in locals(): # If new feature was found
+                   tmpF+=[addition]# add new found feature to the trial set
+            counter=counter+1
         if counter==16:
             break
                                          
@@ -260,7 +262,7 @@ for V in range(len(babies)):
     
     resultsF1_macro,resultsK,resultsF1_micro,resultsF1_weight,resultsF1_all \
     =Validate_with_classifier(Xfeat_valid,y_each_patient_valid,selected_babies,selected_validation,label,classweight,c,gamma,\
-                                       ChoosenKind,SamplingMeth,probability_threshold)
+                                       ChoosenKind,SamplingMeth,probability_threshold,SVMtype,strategie)
        
 #    sys.exit('Jan werth 206')
 
@@ -299,7 +301,8 @@ Xfeat_final=[val[idx[sb],:] for sb, val in enumerate(Xfeat_final)]   #selecting 
 if finalGridsearch:   
     gridC=float64([1,2,4,10,100])
     gridY=float64([3,1,0.5,0.1,0.05,0.01,0.005,0.001,0.0005,0.0001])
-    [c,gamma]=GridSearch_commonFeatures(plotting_grid,gridC,gridY,lst,label,Xfeat_final,y_each_patient,selected_babies,classweight)
+    [c,gamma]=GridSearch_commonFeatures(plotting_grid,gridC,gridY,lst,label,Xfeat_final,y_each_patient,selected_babies,classweight,\
+                                              ChoosenKind,SamplingMeth,probability_threshold,SVMtype,strategie)
     print('The final choosen C and gamma are: C: %.2f gamma: %.2f'%(c,gamma))
 #    sys.exit('Jan werth final Gridsearch')
 #    input("Press Enter to continue...")
@@ -307,7 +310,7 @@ if finalGridsearch:
 
 resultsF1_maco_test,resultsK_test,resultsF1_micro_test,resultsF1_weight_test,resultsF1_all_test \
 =Classifier_routine_no_sampelWeight(Xfeat,y_each_patient,selected_babies,label,classweight,c,gamma,\
-                                       ChoosenKind,SamplingMeth,probability_threshold)
+                                       ChoosenKind,SamplingMeth,probability_threshold,SVMtype,strategie)
 
 """
 ENDING stuff
