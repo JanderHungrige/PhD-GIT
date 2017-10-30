@@ -41,7 +41,8 @@ import pdb # use pdb.set_trace() as breakpoint
 #from compute_class_weight import *   
 import time
 start_time = time.time()
-
+Klassifier=['RF','ERF','TR','GB']
+SampMeth=['SMOTE','ADASYN']
 
 
 """
@@ -96,7 +97,15 @@ ValidatedPerformance_weigth=list()
 ValidatedPerformance_all=zeros(shape=(len(babies),len(label)))
 BiasInfluence=list()
 #for i in range(1, len(lst)+1):
-        
+####Cheking for miss spelling
+if Used_classifier not in Klassifier:
+       sys.exit('Misspelling in Used_classifier')
+       
+if SamplingMeth not in SampMeth:
+       sys.exit('Misspelling in SamplingMeth')   
+       
+"""
+START       
 i=1    
 els = [list(x) for x in itertools.combinations(lst, i)]
 combs.extend(els)  

@@ -11,11 +11,6 @@ Created on Thu Aug 10 22:10:10 2017
 
 @author: 310122653
 """
-#----------------------------------------------------------------------------------
-# This file uses a brute force feature selection for the fist "Ncombos" combinations, "Ncombos" depending on speed,
-# and follows with a greedy forward search, maybe coupled with a greedy backwards search
-# This file is based on the "wrapper.py" used for paper two.
-#----------------------------------------------------------------------------------
 from platform import python_version
 print ('Python version: ', sep=' ', end='', flush=True);print( python_version())	
 
@@ -45,8 +40,8 @@ import pdb # use pdb.set_trace() as breakpoint
 #from compute_class_weight import *   
 import time
 start_time = time.time()
-
-
+Klassifier=['RF','ERF','TR','GB']
+SampMeth=['SMOTE','ADASYN']
 
 """
 **************************************************************************
@@ -61,7 +56,7 @@ consoleinuse='4'
 savepath='/home/310122653/Pyhton_Folder/cECG/Results/'
 
 #### SELECTING THE LABELS FOR SELECTED BABIES
-label=array([1,2]) # 1=AS 2=QS 3=Wake 4=Care-taking 5=NA 6= transition
+label=array([1,2,4]) # 1=AS 2=QS 3=Wake 4=Care-taking 5=NA 6= transition
 babies =[0,1,2,3,4,5,6,7,8] #0-8
     
 #### CREATE ALL POSSIBLE COMBINATIONS OUT OF 30 FEATURES. STOP AT Ncombos FEATURE SET(DUE TO SVM COMPUTATION TIME)
@@ -80,7 +75,9 @@ Used_classifier='GB' #RF=random forest ; ERF= extreme random forest; TR= Decissi
 drawing=1 # draw a the tree structure
 #For up and downsampling of data
 ChoosenKind=0   # 0-3['regular','borderline1','borderline2','svm'] only when using SMOTE
-SamplingMeth='ADASYN'  # 'SMOTE'  or 'ADASYN'
+SamplingMeth='SMOTE'  # 'SMOTE'  or 'ADASYN'
+probability_threshold=1 # 1 to use different probabilities tan 0.5 to decide on the class. At the moment it is >=0.2 for any other calss then AS
+
 
 Performance=list()
 ValidatedPerformance_macro=list()
@@ -90,6 +87,17 @@ ValidatedPerformance_weigth=list()
 ValidatedPerformance_all=zeros(shape=(len(babies),len(label)))
 ValidatedFimportance=zeros(shape=(len(babies),len(lst)))
 Validatedscoring=list() 
+
+####Cheking for miss spelling
+if Used_classifier not in Klassifier:
+       sys.exit('Misspelling in Used_classifier')
+       
+if SamplingMeth not in SampMeth:
+       sys.exit('Misspelling in SamplingMeth')   
+       
+"""
+START
+"""       
       
 #### SCALE FEATURES
 sc = StandardScaler()
@@ -125,15 +133,12 @@ for V in range(len(babies)):
     Xfeat_test=[val[idx_test[sb],:] for sb, val in enumerate(Xfeat_test)]  
      
 
-    # Neighbor based approach, Tomek
-    
-    
-    
     #Validate with left out patient 
     # Run the classifier with the selected FEature subset in selecteF
     resultsF1_macro,resultsK,resultsF1_micro,resultsF1_weight,resultsF1_all,Fimportances,scoring \
     =Classifier_random_forest(Xfeat_test, Xfeat,y_each_patient_test, y_each_patient, selected_babies, \
-                              selected_test, label,classweight, Used_classifier, drawing, lst,ChoosenKind,SamplingMeth)
+                              selected_test, label,classweight, Used_classifier, drawing, lst,\
+                              ChoosenKind,SamplingMeth,probability_threshold)
 
 #    =Classifier_random_forest(Xfeat,y_each_patient,selected_babies,label,classweight)       
 #    sys.exit('Jan werth 206')

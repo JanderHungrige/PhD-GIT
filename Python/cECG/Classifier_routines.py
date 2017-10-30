@@ -41,7 +41,8 @@ from Use_imbalanced_learn import cmplx_Oversampling
 
 import pdb# use pdb.set_trace() as breakpoint
 
-probthres=0.25
+#probthres=0.25
+probthres_Grid=[0.15,0.2,0.22,0.25,0.27,0.3,0.33,0.35,0.37,0.4,0.42,0.44,0.5]
 """
 Without Sample weights
 """
@@ -105,36 +106,54 @@ def Classifier_routine_no_sampelWeight(Xfeat,y_each_patient,selected_babies,labe
             
 
  # F1 Kappa
-        else:        
-            prediction=clf.fit(X_train,y_train.ravel()).predict(X_test)
-            probs=(clf.fit(X_train,y_train.ravel()).predict_proba(X_test)) # with the calculated probabilities we can choose our own threshold
-            if probability_threshold: # prediction takes always proability 0.5 to deside. Here we deside based on other way lower proabilities. deciding if any other than AS has slightly elevated probabilities
-                   for i in range(len(probs)):
-                          if len(label)>2:
-                                 if any(probs[i,1:]>=probthres): #IF THE PROBABILITY IS HIGHER THAN ... USE THAT CLASS INSTEAD OF AS
-                                        highprob=np.argmax(probs[i,1:]) # otherwise search for max prob of the labels other than AS
-                                        prediction[i]=label[highprob+1]# change the label in predictions to the new found label; +1 as we cut the array before by 1. Otherwise false index
+        else: 
+               prediction=clf.fit(X_train,y_train.ravel()).predict(X_test) # prediction decide on 0.5 proability which class to take
+               probs=(clf.fit(X_train,y_train.ravel()).predict_proba(X_test)) # with the calculated probabilities we can choose our own threshold
+               if probability_threshold: # prediction takes always proability 0.5 to deside. Here we deside based on other way lower proabilities. deciding if any other than AS has slightly elevated probabilities
+                      for k in range(len(probthres_Grid)): # try differnt Trhesholds for the probability
+                             preliminary_pred=copy(prediction[:])
+                             probthres=probthres_Grid[k]
+                             for i in range(len(probs)):
+                                    if len(label)>2:
+                                           if any(probs[i,1:]>=probthres): #IF THE PROBABILITY IS HIGHER THAN ... USE THAT CLASS INSTEAD OF AS
+                                                  highprob=np.argmax(probs[i,1:]) # otherwise search for max prob of the labels other than AS
+                                                  preliminary_pred[i]=label[highprob+1]# change the label in predictions to the new found label; +1 as we cut the array before by 1. Otherwise false index
+                                                                                  
+                                    elif(probs[i,1])>=probthres: # if we have only two labels searching for max does not work
+                                           preliminary_pred[i]=label[1]# CHange the label in prediction to the second label
+#!!!!!!!! To change klassifier for perfomance measure       
+                             preliminaryK[k]=cohen_kappa_score(y_test.ravel(),preliminary_pred,labels=label) # Find the threshold where Kapaa gets max
+#!!!!!!!! To change klassifier for perfomance measure  
+                      maxK=preliminaryK.argmax(axis=0)
+                      print('Used probability Thresh: %.2f' % probthres_Grid[maxK])
+                      probthres=probthres_Grid[maxK] #repeat creating the predictions with the optimal probabilty threshold
+                      for i in range(len(probs)):
+                             if len(label)>2:
+                                    if any(probs[i,1:]>=probthres): #IF THE PROBABILITY IS HIGHER THAN ... USE THAT CLASS INSTEAD OF AS
+                                           highprob=np.argmax(probs[i,1:]) # otherwise search for max prob of the labels other than AS
+                                           prediction[i]=label[highprob+1]# change the label in predictions to the new found label; +1 as we cut the array before by 1. Otherwise false index
                                                                            
-                          elif(probs[i,1])>=probthres: # if we have only two labels searching for max does not work
-                                 prediction[i]=label[1]# CHange the label in prediction to the second label
+                             elif(probs[i,1])>=probthres: # if we have only two labels searching for max does not work
+                                    prediction[i]=label[1]# CHange the label in prediction to the second label
+        
                              
             
 
                              
     #           F1=f1_score(y_test, probas_[:, 1], labels=list(label), pos_label=2, average=None, sample_weight=None) 
-            tmpf1_macro=f1_score(y_test.ravel(), prediction, average='macro')#, pos_label=None)
-            tmpf1_micro=f1_score(y_test.ravel(), prediction,average='micro')
-            tmpf1_weight=f1_score(y_test.ravel(), prediction,average='weighted')
-            tmpf1_all=f1_score(y_test.ravel(), prediction,labels=label, average=None)#, pos_label=None)
+        tmpf1_macro=f1_score(y_test.ravel(), prediction, average='macro')#, pos_label=None)
+        tmpf1_micro=f1_score(y_test.ravel(), prediction,average='micro')
+        tmpf1_weight=f1_score(y_test.ravel(), prediction,average='weighted')
+        tmpf1_all=f1_score(y_test.ravel(), prediction,labels=label, average=None)#, pos_label=None)
             
-            tmpK=cohen_kappa_score(y_test.ravel(),prediction,labels=label)
+        tmpK=cohen_kappa_score(y_test.ravel(),prediction,labels=label)
                      
-            F1_macro_collect.append(tmpf1_macro);tmpf1_macro=[] 
-            F1_micro_collect.append(tmpf1_micro);tmpf1_micro=[] 
-            F1_weight_collect.append(tmpf1_weight);tmpf1_weight=[] 
-            F1_all_collect.append(tmpf1_all);tmpf1_all=[] 
+        F1_macro_collect.append(tmpf1_macro);tmpf1_macro=[] 
+        F1_micro_collect.append(tmpf1_micro);tmpf1_micro=[] 
+        F1_weight_collect.append(tmpf1_weight);tmpf1_weight=[] 
+        F1_all_collect.append(tmpf1_all);tmpf1_all=[] 
             
-            K_collect.append(tmpK);tmpK=[]  
+        K_collect.append(tmpK);tmpK=[]  
                              
     resultsF1_maco=mean(F1_macro_collect)
     resultsF1_micro=mean(F1_micro_collect)
@@ -205,10 +224,27 @@ def Validate_with_classifier(Xfeat,y_each_patient,selected_babies,selected_test,
         print("please use at least two labels")
         
  # F1 Kappa
-    else:        
-        prediction=clf.fit(X_train,y_train.ravel()).predict(X_test)
+    else: 
+        prediction=clf.fit(X_train,y_train.ravel()).predict(X_test) # prediction decide on 0.5 proability which class to take
         probs=(clf.fit(X_train,y_train.ravel()).predict_proba(X_test)) # with the calculated probabilities we can choose our own threshold
         if probability_threshold: # prediction takes always proability 0.5 to deside. Here we deside based on other way lower proabilities. deciding if any other than AS has slightly elevated probabilities
+               for k in range(len(probthres_Grid)): # try differnt Trhesholds for the probability
+                      preliminary_pred=copy(prediction[:])
+                      probthres=probthres_Grid[k]
+                      for i in range(len(probs)):
+                             if len(label)>2:
+                                    if any(probs[i,1:]>=probthres): #IF THE PROBABILITY IS HIGHER THAN ... USE THAT CLASS INSTEAD OF AS
+                                           highprob=np.argmax(probs[i,1:]) # otherwise search for max prob of the labels other than AS
+                                           preliminary_pred[i]=label[highprob+1]# change the label in predictions to the new found label; +1 as we cut the array before by 1. Otherwise false index
+                                                                                  
+                             elif(probs[i,1])>=probthres: # if we have only two labels searching for max does not work
+                                    preliminary_pred[i]=label[1]# CHange the label in prediction to the second label
+#!!!!!!!! To change klassifier for perfomance measure       
+                      preliminaryK[k]=cohen_kappa_score(y_test.ravel(),preliminary_pred,labels=label) # Find the threshold where Kapaa gets max
+#!!!!!!!! To change klassifier for perfomance measure  
+               maxK=preliminaryK.argmax(axis=0)
+               print('Used probability Thresh: %.2f' % probthres_Grid[maxK])
+               probthres=probthres_Grid[maxK] #repeat creating the predictions with the optimal probabilty threshold
                for i in range(len(probs)):
                       if len(label)>2:
                              if any(probs[i,1:]>=probthres): #IF THE PROBABILITY IS HIGHER THAN ... USE THAT CLASS INSTEAD OF AS
@@ -256,7 +292,7 @@ def Classifier_random_forest(Xfeat_test, Xfeat,y_each_patient_test, y_each_patie
     meanaccLOO=[];accLOO=[];testsubject=[];tpr_mean=[];counter=0;
     mean_tpr = 0.0;mean_fpr = np.linspace(0, 1, 100)
     F1_macro_collect=[];F1_micro_collect=[];F1_weight_collect=[];F1_all_collect=[];K_collect=[]
-
+    preliminaryK=zeros(len(probthres_Grid))
 
 #CREATING TEST AND TRAIN SETS
     Selected_training=selected_babies
@@ -365,6 +401,23 @@ def Classifier_random_forest(Xfeat_test, Xfeat,y_each_patient_test, y_each_patie
         prediction=clf.fit(X_train,y_train.ravel()).predict(X_test) # prediction decide on 0.5 proability which class to take
         probs=(clf.fit(X_train,y_train.ravel()).predict_proba(X_test)) # with the calculated probabilities we can choose our own threshold
         if probability_threshold: # prediction takes always proability 0.5 to deside. Here we deside based on other way lower proabilities. deciding if any other than AS has slightly elevated probabilities
+               for k in range(len(probthres_Grid)): # try differnt Trhesholds for the probability
+                      preliminary_pred=copy(prediction[:])
+                      probthres=probthres_Grid[k]
+                      for i in range(len(probs)):
+                             if len(label)>2:
+                                    if any(probs[i,1:]>=probthres): #IF THE PROBABILITY IS HIGHER THAN ... USE THAT CLASS INSTEAD OF AS
+                                           highprob=np.argmax(probs[i,1:]) # otherwise search for max prob of the labels other than AS
+                                           preliminary_pred[i]=label[highprob+1]# change the label in predictions to the new found label; +1 as we cut the array before by 1. Otherwise false index
+                                                                                  
+                             elif(probs[i,1])>=probthres: # if we have only two labels searching for max does not work
+                                    preliminary_pred[i]=label[1]# CHange the label in prediction to the second label
+#!!!!!!!! To change klassifier for perfomance measure       
+                      preliminaryK[k]=cohen_kappa_score(y_test.ravel(),preliminary_pred,labels=label) # Find the threshold where Kapaa gets max
+#!!!!!!!! To change klassifier for perfomance measure  
+               maxK=preliminaryK.argmax(axis=0)
+               print('Used probability Thresh: %.2f' % probthres_Grid[maxK])
+               probthres=probthres_Grid[maxK] #repeat creating the predictions with the optimal probabilty threshold
                for i in range(len(probs)):
                       if len(label)>2:
                              if any(probs[i,1:]>=probthres): #IF THE PROBABILITY IS HIGHER THAN ... USE THAT CLASS INSTEAD OF AS
@@ -373,10 +426,8 @@ def Classifier_random_forest(Xfeat_test, Xfeat,y_each_patient_test, y_each_patie
                                                                            
                       elif(probs[i,1])>=probthres: # if we have only two labels searching for max does not work
                              prediction[i]=label[1]# CHange the label in prediction to the second label
-                             
-               
         
-        scoring=clf.score(X_test, y_test.ravel(),  sample_weight=None)
+        scoring=clf.score(X_test, y_test.ravel(),sample_weight=None)
         Fimportances=clf.feature_importances_
         if Used_classifier!='GB':
                Dpath=clf.decision_path(X_train)        
