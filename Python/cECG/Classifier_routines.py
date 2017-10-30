@@ -150,7 +150,8 @@ def Classifier_routine_no_sampelWeight(Xfeat,y_each_patient,selected_babies,labe
 """"
 VALIDATION
 """             
-def Validate_with_classifier(Xfeat,y_each_patient,selected_babies,selected_test,label,classweight,C,gamma,probability_threshold):
+def Validate_with_classifier(Xfeat,y_each_patient,selected_babies,selected_test,label,classweight,C,gamma,\
+                                       ChoosenKind,SamplingMeth,probability_threshold):
   
 #### TRAIN CLASSIFIER
     meanaccLOO=[];accLOO=[];testsubject=[];tpr_mean=[];counter=0;
@@ -166,10 +167,15 @@ def Validate_with_classifier(Xfeat,y_each_patient,selected_babies,selected_test,
     X_test=Xfeat[selected_test]
     y_train=vstack(y_train)
     y_test=y_each_patient[selected_test]
+    y_old=y_train[:]
+
+#SAMPLING TO EQUALIZE CLASS IMBALANCE
+   
+    X_train,y_train=cmplx_Oversampling(X_train,y_train,ChoosenKind,SamplingMeth,label)    
     
 #CALCULATE THE WEIGHTS DUE TO CLASS IMBALANCE
     class_weight='balanced'
-    classlabels=ravel(y_old) # y_test has to be a 1d array for compute_class_weight       
+    classlabels=ravel(y_old) # y_test has to be a 1d array for compute_class_weight      
     
     # Now test if all labels are actually in the data. Otheriwse error with compute_class_weight. If not make the found labels the newe labels. If the new label is 1 then classsification does not work, therefore skip class_weigth , therefore CW       
     if (classweight==1) and len(unique(classlabels))==len(label):

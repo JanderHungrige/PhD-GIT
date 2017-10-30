@@ -250,7 +250,8 @@ for V in range(len(babies)):
     Xfeat_valid=[val[idx_valid[sb],:] for sb, val in enumerate(Xfeat_valid)]  
     
     resultsF1_macro,resultsK,resultsF1_micro,resultsF1_weight,resultsF1_all \
-    =Validate_with_classifier(Xfeat_valid,y_each_patient_valid,selected_babies,selected_validation,label,classweight,c,gamma,probability_threshold)
+    =Validate_with_classifier(Xfeat_valid,y_each_patient_valid,selected_babies,selected_validation,label,classweight,c,gamma,\
+                                       ChoosenKind,SamplingMeth,probability_threshold)
        
 #    sys.exit('Jan werth 206')
 
