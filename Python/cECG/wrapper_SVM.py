@@ -52,7 +52,7 @@ CHANGE THE DATASET IN Loading_5min_mat_files_cECG.py IF USING ECG OR cECG
 """
 #_Labels_ECG_Featurelist_Scoring_classweigt_C_gamma
 
-description='_123456_cECG_lst_micro_'
+description='_12_ECG_lst_Kappa_SMOTE3_Kernel_3_001'
 consoleinuse='4'
 
 savepath='/home/310122653/Pyhton_Folder/cECG/Results/'
@@ -62,7 +62,7 @@ label=array([1,2]) # 1=AS 2=QS 3=Wake 4=Care-taking 5=NA 6= transition
 babies =[0,1,2,3,4,5,6,7,8] #0-8
     
 #### CREATE ALL POSSIBLE COMBINATIONS OUT OF 30 FEATURES. STOP AT Ncombos FEATURE SET(DUE TO SVM COMPUTATION TIME)
-lst = [0,1,2,3]#,4,5,6,7,8,9,10,11,12,13,15,16,17,18,19,20,21,22,23,24,25,26,27,28,29]
+lst = [0,1,2,3,4,5,6,7,8,9,10,11,12,14,15,16,17,18,19,20,21,22,23,24,25,26,27,28,29]
 lst_old=[3,4,5,6,7,8,9,10,11,13,15,16,17,18,19,20,21,22,23,24,25,26] # From first paper to compare with new features
 #lst=lst_old
 """
@@ -81,7 +81,7 @@ c=3
 gamma=0.001
 drawing=1 # draw a the tree structure
 #For up and downsampling of data
-ChoosenKind=1   # 0-3['regular','borderline1','borderline2','svm'] only when using SMOTE
+ChoosenKind=3   # 0-3['regular','borderline1','borderline2','svm'] only when using SMOTE
 SamplingMeth='SMOTE'  # 'SMOTE'  or 'ADASYN'
 probability_threshold=1 # 1 to use different probabilities tan 0.5 to decide on the class. At the moment it is >=0.2 for any other calss then AS
 SVMtype='Kernel'  #Kernel or Linear
@@ -170,13 +170,13 @@ for V in range(len(babies)):
         resultsF1_maco,resultsK,resultsF1_micro,resultsF1_weight,resultsF1_all \
         =Classifier_routine_no_sampelWeight(Xfeat,y_each_patient,selected_babies,label,classweight,c,gamma,\
                                             ChoosenKind,SamplingMeth,probability_threshold,SVMtype,strategie)
-        collected_mean_auc.append(resultsF1_micro) # This collects the mean AUC of each itteration. As we want to know whcih combination is the best, we collect all mean AUCs and search for the maximum later
+        collected_mean_auc.append(resultsK) # This collects the mean AUC of each itteration. As we want to know whcih combination is the best, we collect all mean AUCs and search for the maximum later
         print('BF Round: %i of:%i' %(Fc+1,len(combs_short)))    
            
     """ 
     GREEDY FORWARD SEARCH
     """
-    # 1:take best combo and add 1 other feature to it.
+    # 1:take best combo and add 1 other feature to it4
     # 2:Find best AUC, -> 3: new combo
     # 4:delete the new found feature from lst
     #repeate

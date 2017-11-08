@@ -47,12 +47,13 @@ probthres_Grid=[0.15,0.2,0.22,0.25,0.27,0.3,0.33,0.35,0.37,0.4,0.42,0.44,0.5]
 Without Sample weights
 """
 def Classifier_routine_no_sampelWeight(Xfeat,y_each_patient,selected_babies,label,classweight,C,gamma,\
-                                       ChoosenKind,SamplingMeth,probability_threshold):
+                                       ChoosenKind,SamplingMeth,probability_threshold,SVMtype,strategie):
 #### TRAIN CLASSIFIER
     meanaccLOO=[];accLOO=[];testsubject=[];tpr_mean=[];counter=0;
     mean_tpr = 0.0;mean_fpr = np.linspace(0, 1, 100)
     F1_macro_collect=[];F1_micro_collect=[];F1_weight_collect=[];F1_all_collect=[];K_collect=[]
-
+    preliminaryK=zeros(len(probthres_Grid))
+    
     #CREATING TEST AND TRAIN SETS
     for j in range(len(selected_babies)-1):
         print('.' , sep=' ', end='', flush=True)      # print in one line   
@@ -90,12 +91,18 @@ def Classifier_routine_no_sampelWeight(Xfeat,y_each_patient,selected_babies,labe
                 cW=compute_class_weight(class_weight, CW_label, classlabels)
                 cWdict=dict(zip(label,cW))#the class weight need to be a dictionarry of the form:{class_label : value}
                 CW=1
-                           
+                                           
     #THE SVM
-        if (classweight==1) and CW==1: 
-             clf = svm.SVC(kernel='rbf',gamma=gamma, C=C, class_weight=cWdict,cache_size=500, probability=True, random_state=42)
-        else:
-             clf = svm.SVC(kernel='rbf',gamma=gamma, C=C,cache_size=500, probability=True, random_state=42)
+        if SVMtype=='Linear':              
+               if (classweight==1) and CW==1: 
+                    clf = svm.LinearSVC( C=C, class_weight=cWdict,cache_size=500, random_state=42, multi_class=strategie )
+               else:
+                    clf = svm.LinearSVC( C=C,cache_size=500, random_state=42, multi_class=strategie )  
+        elif SVMtype=='Kernel':                    
+               if (classweight==1) and CW==1: 
+                    clf = svm.SVC(kernel='rbf',gamma=gamma, C=C, class_weight=cWdict,cache_size=500, probability=True, random_state=42)
+               else:
+                    clf = svm.SVC(kernel='rbf',gamma=gamma, C=C,cache_size=500, probability=True, random_state=42)
             
 
 #Performance analysis        
@@ -170,13 +177,13 @@ def Classifier_routine_no_sampelWeight(Xfeat,y_each_patient,selected_babies,labe
 VALIDATION
 """             
 def Validate_with_classifier(Xfeat,y_each_patient,selected_babies,selected_test,label,classweight,C,gamma,\
-                                       ChoosenKind,SamplingMeth,probability_threshold):
+                                       ChoosenKind,SamplingMeth,probability_threshold,SVMtype,strategie):
   
 #### TRAIN CLASSIFIER
     meanaccLOO=[];accLOO=[];testsubject=[];tpr_mean=[];counter=0;
     mean_tpr = 0.0;mean_fpr = np.linspace(0, 1, 100)
     F1_macro_collect=[];F1_micro_collect=[];F1_weight_collect=[];F1_all_collect=[];K_collect=[]
-
+    preliminaryK=zeros(len(probthres_Grid))
 
     #CREATING TEST AND TRAIN SETS
     Selected_training=selected_babies
@@ -213,10 +220,16 @@ def Validate_with_classifier(Xfeat,y_each_patient,selected_babies,selected_test,
             CW=1
             
     #THE SVM
-    if (classweight==1) and CW==1: 
-         clf = svm.SVC(kernel='rbf',gamma=gamma, C=C, class_weight=cWdict, cache_size=500,probability=True, random_state=42)
-    else:
-         clf = svm.SVC(kernel='rbf',gamma=gamma, C=C, cache_size=500, probability=True,random_state=42)
+    if SVMtype=='Linear':              
+        if (classweight==1) and CW==1: 
+             clf = svm.LinearSVC( C=C, class_weight=cWdict,cache_size=500, random_state=42, multi_class=strategie )
+        else:
+             clf = svm.LinearSVC( C=C,cache_size=500, random_state=42, multi_class=strategie )  
+    elif SVMtype=='Kernel':                    
+        if (classweight==1) and CW==1: 
+             clf = svm.SVC(kernel='rbf',gamma=gamma, C=C, class_weight=cWdict,cache_size=500, probability=True, random_state=42)
+        else:
+             clf = svm.SVC(kernel='rbf',gamma=gamma, C=C,cache_size=500, probability=True, random_state=42)
         
 #Performance analysis        
 #        sys.exit('Jan werth')
