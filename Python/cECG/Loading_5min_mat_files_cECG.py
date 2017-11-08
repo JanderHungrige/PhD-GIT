@@ -141,12 +141,11 @@ if Annotationchanger:
                             count6=count6+1
                             before6=int(AnnotMatrix_each_patient[l][M-2])
                      elif AnnotMatrix_each_patient[l][M]!=6 and count6!=0:
-                            if direction6:
+                            if direction6:# replace with value before state 6
                                    AnnotMatrix_each_patient[l][M-count6:M]=before6
                                    count6=0
-                                   before6=0
-                                   
-                            else:
+                                   before6=0                                   
+                            else:#replace with value after state 6
                                    AnnotMatrix_each_patient[l][M-count6:M]=int(AnnotMatrix_each_patient[l][M])
                                    count6=0
 if Loosing5:
@@ -157,7 +156,7 @@ if Loosing5:
                      if (AnnotMatrix_each_patient[l][M]==5):
                             count5=count5+1
                             before5=int(AnnotMatrix_each_patient[l][M-1])
-                     elif AnnotMatrix_each_patient[l][M]!=5 and count5!=0 and count5<=30 and before==int(AnnotMatrix_each_patient[l][M]): # if 5 is inbewteen the same state; and if Not annotatable is on y 10 long(5min)
+                     elif AnnotMatrix_each_patient[l][M]!=5 and count5!=0 and count5<=40 and before5==int(AnnotMatrix_each_patient[l][M]): # if 5 is inbewteen the same state; and if Not annotatable is on y 10 long(5min)
                             AnnotMatrix_each_patient[l][M-count5:M]=int(AnnotMatrix_each_patient[l][M])
                             count5=0 
                             before5=0

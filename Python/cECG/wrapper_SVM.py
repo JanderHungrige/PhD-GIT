@@ -83,9 +83,13 @@ drawing=1 # draw a the tree structure
 #For up and downsampling of data
 ChoosenKind=3   # 0-3['regular','borderline1','borderline2','svm'] only when using SMOTE
 SamplingMeth='SMOTE'  # 'SMOTE'  or 'ADASYN'
+
 probability_threshold=1 # 1 to use different probabilities tan 0.5 to decide on the class. At the moment it is >=0.2 for any other calss then AS
+
 SVMtype='Kernel'  #Kernel or Linear
 strategie='ovr' # or or crammer_singer tochoose for LinearSVM multiclass stragey
+
+WhichMix='perSession' #perSession or all  # determine how the data was scaled. PEr session or just per patient
 
 combs=[]
 bestAUCs=nan
@@ -97,10 +101,21 @@ ValidatedPerformance_micro=list()
 ValidatedPerformance_weigth=list()  
 ValidatedPerformance_all=zeros(shape=(len(babies),len(label)))
 BiasInfluence=list()
+collected_mean_auc=[]
+
+
 #for i in range(1, len(lst)+1):
 ####Cheking for miss spelling      
 if SamplingMeth not in SampMeth:
        sys.exit('Misspelling in SamplingMeth')   
+if WhichMix not in Whichmix:
+       sys.exit('Misspelling in WhichMix')         
+     
+# CHOOSING WHICH FEATURE MATRIX IS USED
+if WhichMix=='perSession':
+       FeatureMatrix_each_patient=FeatureMatrix_each_patient_fromSession       
+elif WhichMix=='all':
+       FeatureMatrix_each_patient=FeatureMatrix_each_patient_all
        
 """
 START 
@@ -110,18 +125,9 @@ els = [list(x) for x in itertools.combinations(lst, i)]
 combs.extend(els)  
 combs_short=[combs for combs in combs if len(combs) <= Ncombos] #due to computation time we stop with 5 Features per set.
 
-      
-#### SCALE FEATURES
-sc = StandardScaler()
-for i in range(len(FeatureMatrix_each_patient)):
-    sc.fit(FeatureMatrix_each_patient[i])
-    FeatureMatrix_each_patient[i]=sc.transform(FeatureMatrix_each_patient[i])
-
-collected_mean_auc=[]
 
 """ 
 GRID SEARCH FOR C AND GAMMA
-
 """
 if preGridsearch:
     # For pregridsearch take all label
