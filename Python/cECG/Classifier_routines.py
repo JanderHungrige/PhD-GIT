@@ -24,8 +24,8 @@ from sklearn import tree
 from sklearn.ensemble import RandomForestClassifier
 from sklearn.ensemble import ExtraTreesClassifier
 from sklearn.ensemble import GradientBoostingClassifier
-import xgboost as xgb
-from xgboost.sklearn import XGBClassifier
+#import xgboost as xgb
+#from xgboost.sklearn import XGBClassifier
 #from xgboost import XGBClassifier
 from sklearn.metrics import accuracy_score 
 from sklearn.metrics import confusion_matrix
@@ -95,9 +95,9 @@ def Classifier_routine_no_sampelWeight(Xfeat,y_each_patient,selected_babies,labe
     #THE SVM
         if SVMtype=='Linear':              
                if (classweight==1) and CW==1: 
-                    clf = svm.LinearSVC( C=C, class_weight=cWdict,cache_size=500, random_state=42, multi_class=strategie )
+                    clf = svm.LinearSVC( C=C, class_weight=cWdict, random_state=42, multi_class=strategie )
                else:
-                    clf = svm.LinearSVC( C=C,cache_size=500, random_state=42, multi_class=strategie )  
+                    clf = svm.LinearSVC( C=C,random_state=42, multi_class=strategie )  
         elif SVMtype=='Kernel':                    
                if (classweight==1) and CW==1: 
                     clf = svm.SVC(kernel='rbf',gamma=gamma, C=C, class_weight=cWdict,cache_size=500, probability=True, random_state=42)
@@ -128,9 +128,9 @@ def Classifier_routine_no_sampelWeight(Xfeat,y_each_patient,selected_babies,labe
                                                                                   
                                     elif(probs[i,1])>=probthres: # if we have only two labels searching for max does not work
                                            preliminary_pred[i]=label[1]# CHange the label in prediction to the second label
-#!!!!!!!! To change klassifier for perfomance measure       
+#To change klassifier for perfomance measure       
                              preliminaryK[k]=cohen_kappa_score(y_test.ravel(),preliminary_pred,labels=label) # Find the threshold where Kapaa gets max
-#!!!!!!!! To change klassifier for perfomance measure  
+#To change klassifier for perfomance measure  
                       maxK=preliminaryK.argmax(axis=0)
                       print('Used probability Thresh: %.2f' % probthres_Grid[maxK])
                       probthres=probthres_Grid[maxK] #repeat creating the predictions with the optimal probabilty threshold
@@ -482,6 +482,6 @@ def Classifier_random_forest(Xfeat_test, Xfeat,y_each_patient_test, y_each_patie
 #                 
         
                   
-    return resultsF1_macro,resultsK,resultsF1_micro,resultsF1_weight,resultsF1_all,Fimportances,scoring
+    return resultsF1_macro,resultsK,resultsF1_micro,resultsF1_weight,resultsF1_all,Fimportances,scoring,prediction
         #F1 returns with average='none' a F1 score for each label or macro=meaned
         

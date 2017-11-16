@@ -16,7 +16,7 @@ print ('Python version: ', sep=' ', end='', flush=True);print( python_version())
 
 
 from Loading_5min_mat_files_cECG import \
-AnnotMatrix_each_patient, FeatureMatrix_each_patient_all, Class_dict, features_dict, features_indx, FeatureMatrix_each_patient_fromSession
+babies, AnnotMatrix_each_patient, FeatureMatrix_each_patient_all, Class_dict, features_dict, features_indx, FeatureMatrix_each_patient_fromSession
 from Classifier_routines import Classifier_random_forest
 from GridSearch import *
 
@@ -43,11 +43,18 @@ import pdb # use pdb.set_trace() as breakpoint
 import time
 start_time = time.time()
 Klassifier=['RF','ERF','TR','GB']
-SampMeth=['SMOTE','ADASYN']
+SampMeth=['NONE','SMOTE','ADASYN']
 Whichmix=['perSession', 'all']
 """
 **************************************************************************
-CHANGE THE DATASET IN Loading_5min_mat_files_cECG.py IF USING ECG OR cECG
+Loading_5min_mat_files_cECG.py :
+
+       CHANGE THE DATASET IF USING ECG OR cECG
+
+       CHOOSE WHICH BAIES ARE USED
+       
+       CHOOSE IF FEATURES ARE MERGED OR REPLACED
+
 **************************************************************************
 """
 #_Labels_ECG_Featurelist_Scoring_classweigt_C_gamma
@@ -59,12 +66,11 @@ savepath='/home/310122653/Pyhton_Folder/cECG/Results/'
 
 #### SELECTING THE LABELS FOR SELECTED BABIES
 label=array([1,2,4]) # 1=AS 2=QS 3=Wake 4=Care-taking 5=NA 6= transition
-babies =[0,1,2,3,4,5,6,7,8] #0-8
-    
+
 #### CREATE ALL POSSIBLE COMBINATIONS OUT OF 30 FEATURES. STOP AT Ncombos FEATURE SET(DUE TO SVM COMPUTATION TIME)
-#lst = [0,1,2,3,4,5,6,7,8,9,10,11,12,14,15,16,17,18,19,20,21,22,23,24,25,26,27,28,29]
-lst_old=[3,4,5,6,7,8,9,10,11,14,15,16,17,18,19,20,21,22,23,24,25,26] # From first paper to compare with new features
-lst=lst_old
+lst = [0,1,2,3,4,5,6,7,8,9,10,11,12,14,15,16,17,18,19,20,21,22,23,24,25,26,27,28,29]
+#lst_old=[3,4,5,6,7,8,9,10,11,14,15,16,17,18,19,20,21,22,23,24,25,26] # From first paper to compare with new features
+#lst=lst_old
 """
 **************************************************************************
 CHANGE THE DATASET IN Loading_5min_mat_files_cECG.py IF USING ECG OR cECG
@@ -73,17 +79,19 @@ CHANGE THE DATASET IN Loading_5min_mat_files_cECG.py IF USING ECG OR cECG
 # SET INSTRUCTIONS
 classweight=1 # If classweights should be automatically ('balanced') determined and used for trainnig use: 0; IF they should be calculated by own function use 1
 saving=0
-Used_classifier='RF' #RF=random forest ; ERF= extreme random forest; TR= Decission tree; GB= Gradient boosting
+Used_classifier='ERF' #RF=random forest ; ERF= extreme random forest; TR= Decission tree; GB= Gradient boosting
 drawing=1 # draw a the tree structure
+plotting=1 # plot annotations over time per patient
 
 #For up and downsampling of data
+SamplingMeth='SMOTE'  # 'NONE' 'SMOTE'  or 'ADASYN'
 ChoosenKind=0   # 0-3['regular','borderline1','borderline2','svm'] only when using SMOTE
-SamplingMeth='SMOTE'  # 'SMOTE'  or 'ADASYN'
 
 probability_threshold=1 # 1 to use different probabilities tan 0.5 to decide on the class. At the moment it is >=0.2 for any other calss then AS
 WhichMix='perSession' #perSession or all  # determine how the data was scaled. PEr session or just per patient
 
-
+t_a=list()
+classpredictions=list()
 Performance=list()
 ValidatedPerformance_macro=list()
 ValidatedPerformance_K=list()
@@ -110,7 +118,7 @@ elif WhichMix=='all':
 """
 START
 """       
-# sclaing is now done directly during loading   
+# scaling is now done directly during loading   
 
 
 for V in range(len(babies)):
@@ -142,13 +150,14 @@ for V in range(len(babies)):
 
     #Validate with left out patient 
     # Run the classifier with the selected FEature subset in selecteF
-    resultsF1_macro,resultsK,resultsF1_micro,resultsF1_weight,resultsF1_all,Fimportances,scoring \
+    resultsF1_macro,resultsK,resultsF1_micro,resultsF1_weight,resultsF1_all,Fimportances,scoring,prediction \
     =Classifier_random_forest(Xfeat_test, Xfeat,y_each_patient_test, y_each_patient, selected_babies, \
                               selected_test, label,classweight, Used_classifier, drawing, lst,\
                               ChoosenKind,SamplingMeth,probability_threshold)
 
 #    =Classifier_random_forest(Xfeat,y_each_patient,selected_babies,label,classweight)       
 #    sys.exit('Jan werth 206')
+    classpredictions.append(prediction)
     ValidatedFimportance[V]=Fimportances
 
     ValidatedPerformance_macro.append(resultsF1_macro)
@@ -157,11 +166,18 @@ for V in range(len(babies)):
     ValidatedPerformance_weigth.append(resultsF1_weight)    
     ValidatedPerformance_all[V]=resultsF1_all
     Validatedscoring.append(scoring)
+
+    if plotting:
+           t_a.append(np.linspace(0,len(y_each_patient_test[V])*30/60,len(y_each_patient_test[V])))
+           plt.figure(V) 
+           plt.plot(t_a[V],y_each_patient_test[V])
+           plt.plot(t_a[V],classpredictions[V]+0.05)
+           plt.title([V])      
     
 """
 ENDING stuff
 """
-        
+ 
 if saving:      
     save(savepath + 'ValidatedFimportance' + description, ValidatedFimportance)     
   

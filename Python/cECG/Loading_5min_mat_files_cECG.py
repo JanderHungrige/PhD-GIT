@@ -21,26 +21,40 @@ from sklearn.preprocessing import StandardScaler
 #***************
 dataset='ECG'  # Either ECG or cECG and later maybe MMC or InnerSense
 #***************
-scaling='Z' # SCaling Z or MM 
-Annotationchanger=1 #Exchange state 6 with the following state
-direction6=0 # if State 6 should be replaced with the state before, use =1; odtherwise with after, use =0
-Loosing5=1 # exchange state 5 if inbetween another state with this state (also only if length <= x)
-plotting=0
+selectedbabies =[0,1,3,5,6,7] #0-8 ('4','5','6','7','9','10','11','12','13')
+selectedbabies =[0,1,2,3,4,5,6,7,8] #0-8 ('4','5','6','7','9','10','11','12','13')
 
-#folder=('/home/310122653/Pyhton_Folder/cECG/Matrices/')
+ux=0 # if using this on Linux cluster use 1 to change adresses
+scaling='Z' # Scaling Z or MM 
+LoosingAnnot5=1 # exchange state 5 if inbetween another state with this state (also only if length <= x)
+LoosingAnnot6=0 #Exchange state 6 with the following state
+LoosingAnnot6_2=1 # as above, but chooses always 2 when 6 was lead into with 1
+direction6=1 # if State 6 should be replaced with the state before, use =1; odtherwise with after, use =0. Annotators used before.
+plotting=0
+Smoothing_short=0 # # short part of any annotation are smoothed out. 
+Pack4=1 # State 4 is often split in multible short parts. Merge them together as thebaby does not calm downin 1 min
+
 if 'ECG'== dataset:
-    folder=('C:/Users/310122653/Dropbox/PHD/python/cECG/Matrices/')
+       if ux:
+              folder=('/home/310122653/Pyhton_Folder/cECG/Matrices/')
+       else:
+              folder=('C:/Users/310122653/Dropbox/PHD/python/cECG/Matrices/')
 if 'cECG'==dataset:
-    folder=('C:/Users/310122653/Dropbox/PHD/python/cECG/cMatrices/')
-    
+       if ux:  
+              folder=('/home/310122653/Pyhton_Folder/cECG/cMatrices/')
+       else:
+              folder=('C:/Users/310122653/Dropbox/PHD/python/cECG/cMatrices/')
     
 # ONLY 5 MIN FEATURES AND ANNOTATIONS
 dateien_each_patient="FeatureMatrix_","Annotations_" #non scaled values. The values should be scaled over all patient and not per patient. Therfore this is better
 windowlength="30"
-Neonate='4','5','6','7','9','10','11','12','13'
+Neonate_all='4','5','6','7','9','10','11','12','13'
+babies=[i for i in range(len(selectedbabies))]# return to main function
 
+Neonate=[(Neonate_all[i]) for i in selectedbabies];Neonate=tuple(Neonate)
 FeatureMatrix_each_patient_all=[0]*len(Neonate)
 AnnotMatrix_each_patient=[0]*len(Neonate)
+t_a=[0]*len(Neonate)
 
 # IMPORTING *.MAT FILES
 for j in range(len(dateien_each_patient)): # j=0 Features  j=1 Annotations
@@ -60,8 +74,11 @@ for j in range(len(dateien_each_patient)): # j=0 Features  j=1 Annotations
         elif j==1:
             AnnotMatrix_each_patient[k]=matlabfile.get('Annotations')  
             AnnotMatrix_each_patient[k]=AnnotMatrix_each_patient[k].transpose() # transpose to datapoints,annotations
+            t_a[k]=np.linspace(0,len(AnnotMatrix_each_patient[k])*30/60,len(AnnotMatrix_each_patient[k]))  
             if plotting:
-                 plt.plot(AnnotMatrix_each_patient[k])
+                 plt.figure(k) 
+                 plt.plot(t_a[k],AnnotMatrix_each_patient[k])
+                 plt.title([k])
 #            AnnotMatrix_each_patient[k]= np.delete(AnnotMatrix_each_patient[k],(1,2), axis=1) #Reduce AnnotationMatrix to Nx1
 #            AnnotMatrix_each_patient[k]=AnnotMatrix_each_patient[k][~np.isnan(AnnotMatrix_each_patient[k]).any(axis=1)]#deleting NAN and turning Matrix to datapoints,Features
 
@@ -89,10 +106,15 @@ Creating Feature Matrix per session
 
 #folder=('/home/310122653/Pyhton_Folder/cECG/Matrices/')
 if 'ECG'== dataset:
-    Sessionfolder=('C:/Users/310122653/Dropbox/PHD/python/cECG/Matrices/Sessions/')
+       if ux:
+              Sessionfolder=('/home/310122653/Pyhton_Folder/cECG/Matrices/Sessions/')
+       else:
+              Sessionfolder=('C:/Users/310122653/Dropbox/PHD/python/cECG/Matrices/Sessions/')
 if 'cECG'==dataset:
-    Sessionfolder=('C:/Users/310122653/Dropbox/PHD/python/cECG/cMatrices/Sessions/')
-	
+       if ux:
+              Sessionfolder=('/home/310122653/Pyhton_Folder/cECG/cMatrices/Sessions/')
+       else:
+              Sessionfolder=('C:/Users/310122653/Dropbox/PHD/python/cECG/cMatrices/Sessions/')
 
 import os
 import glob
@@ -130,37 +152,110 @@ for k in range(len(Neonate)):
                      sys.exit('Misspelling of the scaling type')
                      
        FeatureMatrix_each_patient_fromSession[k]=np.concatenate(FeatureMatrix_Session_each_patient)
+     
                       
 #%% Change the annotations
-if Annotationchanger:
+       
+if LoosingAnnot5:
+       count5=0
+       before5=0
+       for l in range(len(AnnotMatrix_each_patient)):
+              for  M in range(len(AnnotMatrix_each_patient[l])):
+                     if (AnnotMatrix_each_patient[l][M]==5) and count5==0:
+                            count5=count5+1
+                            before5=int(AnnotMatrix_each_patient[l][M-1])# save the state before state 5
+                     elif (AnnotMatrix_each_patient[l][M]==5) and count5!=0:
+                            count5=count5+1
+                     elif AnnotMatrix_each_patient[l][M]!=5 and count5!=0 and count5<=40 and before5==int(AnnotMatrix_each_patient[l][M]): # if 5 is inbewteen the same state; and if Not annotatable is on y 10 long(5min)
+                            AnnotMatrix_each_patient[l][M-count5:M]=int(AnnotMatrix_each_patient[l][M])
+                            count5=0 
+                            before5=0  
+                     elif AnnotMatrix_each_patient[l][M]!=5 and count5!=0 and count5<=10: # if there is another state following, but the duration of 5 is very short, still change to the following state
+                            AnnotMatrix_each_patient[l][M-count5:M]=int(AnnotMatrix_each_patient[l][M])
+                            count5=0 
+                            before5=0  
+                                                      
+if LoosingAnnot6:
        count6=0;
        before6=0
        for l in range(len(AnnotMatrix_each_patient)):
               for  M in range(len(AnnotMatrix_each_patient[l])):
-                     if (AnnotMatrix_each_patient[l][M]==6): 
+                     if (AnnotMatrix_each_patient[l][M]==6) and count6==0: 
                             count6=count6+1
-                            before6=int(AnnotMatrix_each_patient[l][M-2])
-                     elif AnnotMatrix_each_patient[l][M]!=6 and count6!=0:
-                            if direction6:# replace with value before state 6
+                            before6=int(AnnotMatrix_each_patient[l][M-1]) # save the state before state 6
+                     elif (AnnotMatrix_each_patient[l][M]==6) and count6!=0 and M!=len(AnnotMatrix_each_patient[l])-1: # and not at the end
+                            count6=count6+1
+                     elif (AnnotMatrix_each_patient[l][M]!=6 and count6!=0) or (M==len(AnnotMatrix_each_patient[l])-1 and count6!=0): # len is for state at the end
+                            if direction6 and before6!=5:# replace with value before state 6 if not 5 otherwise use exeption and replace with the value after
                                    AnnotMatrix_each_patient[l][M-count6:M]=before6
+                                   if M==len(AnnotMatrix_each_patient[l])-1:# if at the end, M is one smaller than len due to range starting from 0
+                                          AnnotMatrix_each_patient[l][M-count6:M+1]=before6
                                    count6=0
                                    before6=0                                   
                             else:#replace with value after state 6
                                    AnnotMatrix_each_patient[l][M-count6:M]=int(AnnotMatrix_each_patient[l][M])
                                    count6=0
-if Loosing5:
-       count5=0
-       before5=0
+                                   
+if LoosingAnnot6_2: #If before state 6 the state is 1 and following is 2 choose 2. Eerything else is like in Loosing6
+       count6=0;
+       before6=0
        for l in range(len(AnnotMatrix_each_patient)):
               for  M in range(len(AnnotMatrix_each_patient[l])):
-                     if (AnnotMatrix_each_patient[l][M]==5):
-                            count5=count5+1
-                            before5=int(AnnotMatrix_each_patient[l][M-1])
-                     elif AnnotMatrix_each_patient[l][M]!=5 and count5!=0 and count5<=40 and before5==int(AnnotMatrix_each_patient[l][M]): # if 5 is inbewteen the same state; and if Not annotatable is on y 10 long(5min)
-                            AnnotMatrix_each_patient[l][M-count5:M]=int(AnnotMatrix_each_patient[l][M])
-                            count5=0 
-                            before5=0
-                      
+                     if (AnnotMatrix_each_patient[l][M]==6) and count6==0: 
+                            count6=count6+1
+                            before6=int(AnnotMatrix_each_patient[l][M-1]) # save the state before state 6
+                     elif (AnnotMatrix_each_patient[l][M]==6) and count6!=0 and M!=len(AnnotMatrix_each_patient[l])-1: # and not at the end
+                            count6=count6+1
+                     elif (AnnotMatrix_each_patient[l][M]!=6 and count6!=0) or (M==len(AnnotMatrix_each_patient[l])-1 and count6!=0): # len is for state at the end
+                            if direction6 and before6==1 and AnnotMatrix_each_patient[l][M]==2:# replace with value before state 6 if not 5 otherwise use exeption and replace with the value after
+                                   AnnotMatrix_each_patient[l][M-count6:M]=2
+                                   if M==len(AnnotMatrix_each_patient[l])-1:# if at the end, M is one smaller than len due to range starting from 0
+                                          AnnotMatrix_each_patient[l][M-count6:M+1]=2
+                                   count6=0
+                                   before6=0 
+                            elif direction6 and before6!=5:# replace with value before state 6 if not 5 otherwise use exeption and replace with the value after
+                                   AnnotMatrix_each_patient[l][M-count6:M]=before6
+                                   if M==len(AnnotMatrix_each_patient[l])-1:# if at the end, M is one smaller than len due to range starting from 0
+                                          AnnotMatrix_each_patient[l][M-count6:M+1]=before6
+                                   count6=0
+                                   before6=0                                   
+                            else:#replace with value after state 6
+                                   AnnotMatrix_each_patient[l][M-count6:M]=int(AnnotMatrix_each_patient[l][M])
+                                   count6=0    
+#                                   
+                            
+if Smoothing_short:
+       countSS=0
+       beforeSS=0
+       for l in range(len(AnnotMatrix_each_patient)):
+              for M in range(1,len(AnnotMatrix_each_patient[l])):# 1 as we want to compare M and M-1, so rnge should start at 1 and not 0
+                     if int(AnnotMatrix_each_patient[l][M])==int(AnnotMatrix_each_patient[l][M-1]):
+                            countSS=countSS+1
+                     elif (int(AnnotMatrix_each_patient[l][M])!=int(AnnotMatrix_each_patient[l][M-1])) and countSS!=0:
+                            if countSS>5:
+                                   rememberSS=int(AnnotMatrix_each_patient[l][M-1])
+                            if countSS<=3:
+                                   AnnotMatrix_each_patient[l][M-1-countSS:M]=rememberSS#int(AnnotMatrix_each_patient[l][M])
+                            countSS=0       
+                            countSS=countSS+1
+
+if Pack4:
+       answer=[]
+       count4=0
+       for l in range(len(AnnotMatrix_each_patient)):
+              for M in range(len(AnnotMatrix_each_patient[l])): #stepping 5 min 10*30s
+                    AAA=list(AnnotMatrix_each_patient[l]).index(4)
+
+                     
+                                     
+
+if plotting:
+       for l in range(len(AnnotMatrix_each_patient)): 
+          t_a[l]=np.linspace(0,len(AnnotMatrix_each_patient[l])*30/60,len(AnnotMatrix_each_patient[l]))  
+          plt.figure(l) 
+          plt.plot(t_a[l],AnnotMatrix_each_patient[l]-0.1)
+          plt.title([l])                            
+                             
 #%%                                  
 Class_dict={1:'AS',2:'QS',3:'Wake', 4:'caretaking',5:'Unknown',6:'Trans'} #AS:active sleep   QS:Quiet sleep  AW:Active wake  QW:Quiet wake  Trans:Transition  Pos:Position         
 
