@@ -17,22 +17,51 @@ import numpy as np
 import math
 from sklearn.preprocessing import MinMaxScaler
 from sklearn.preprocessing import StandardScaler
-
+from sklearn.manifold import Isomap
+from AnnotationChanger import AnnotationChanger
+from sklearn.preprocessing import PolynomialFeatures
+"""
+Set variables *****************************************************************
+"""
 #***************
 dataset='ECG'  # Either ECG or cECG and later maybe MMC or InnerSense
 #***************
-selectedbabies =[0,1,3,5,6,7] #0-8 ('4','5','6','7','9','10','11','12','13')
 selectedbabies =[0,1,2,3,4,5,6,7,8] #0-8 ('4','5','6','7','9','10','11','12','13')
+#selectedbabies =[0,1,2,3,4,5,6,7,8] #0-8 ('4','5','6','7','9','10','11','12','13')
 
 ux=0 # if using this on Linux cluster use 1 to change adresses
 scaling='Z' # Scaling Z or MM 
-LoosingAnnot5=1 # exchange state 5 if inbetween another state with this state (also only if length <= x)
-LoosingAnnot6=0 #Exchange state 6 with the following state
-LoosingAnnot6_2=1 # as above, but chooses always 2 when 6 was lead into with 1
-direction6=1 # if State 6 should be replaced with the state before, use =1; odtherwise with after, use =0. Annotators used before.
-plotting=0
+#---------------------------
+
+LoosingAnnot5= 0# exchange state 5 if inbetween another state with this state (also only if length <= x)
+LoosingAnnot6=0  #Exchange state 6 with the following or previouse state (depending on direction)
+LoosingAnnot6_2=0 # as above, but chooses always 2 when 6 was lead into with 1
+direction6=0 # if State 6 should be replaced with the state before, use =1; odtherwise with after, use =0. Annotators used before.
+plotting=0 #plotting annotations
 Smoothing_short=0 # # short part of any annotation are smoothed out. 
-Pack4=1 # State 4 is often split in multible short parts. Merge them together as thebaby does not calm downin 1 min
+Pack4=0 # State 4 is often split in multible short parts. Merge them together as thebaby does not calm downin 1 min
+#---------------------------
+
+Movingwindow=10 # WIndow size for moving average
+preaveraging=0
+postaveraging=0
+exceptNOF=1 #Which Number of Features (NOF) should be used with moving average?  all =oth tzero; only some or all except some defined in FEAT
+onlyNOF=0 # [0,1,2,27,28,29]
+#FEAT=[0,1,2]
+FEAT=[1,2,27,28] # FRO CT
+#----------------------------
+
+PolyTrans=1 # use polinominal transformation on the Features specified in FEATp
+exceptNOpF=0 #Which Number of Features (NOpF) should be used with polynominal fit?  all =0; only some or all except some defined in FEATp
+onlyNOpF=0 # [0,1,2,27,28,29]
+FEATp=[1,2,27,28] # FRO CT
+#=---------------------------
+
+RBFkernel=0
+
+"""
+START *************************************************************************
+"""
 
 if 'ECG'== dataset:
        if ux:
@@ -82,7 +111,8 @@ for j in range(len(dateien_each_patient)): # j=0 Features  j=1 Annotations
 #            AnnotMatrix_each_patient[k]= np.delete(AnnotMatrix_each_patient[k],(1,2), axis=1) #Reduce AnnotationMatrix to Nx1
 #            AnnotMatrix_each_patient[k]=AnnotMatrix_each_patient[k][~np.isnan(AnnotMatrix_each_patient[k]).any(axis=1)]#deleting NAN and turning Matrix to datapoints,Features
 
-      
+
+               
 #### SCALE FEATURES
 sc = StandardScaler()
 sMM= MinMaxScaler()
@@ -121,9 +151,9 @@ import glob
 from pathlib import Path
 
 FeatureMatrix_each_patient_fromSession=[None]*len(Neonate)
-for k in range(len(Neonate)):      
+for K in range(len(Neonate)):      
        SessionFileList=[]
-       Dateien=glob.glob(Sessionfolder +'FeatureMatrix_'+Neonate[k]+ '_**')
+       Dateien=glob.glob(Sessionfolder +'FeatureMatrix_'+Neonate[K]+ '_**')
        SessionFileList=[None]*(len(Neonate))
        FeatureMatrix_Session_each_patient=[None]*len(Dateien)
 
@@ -141,6 +171,15 @@ for k in range(len(Neonate)):
                FeatureMatrix_Session_each_patient[j]=matlabfile.get('FeatureMatrix') 
                FeatureMatrix_Session_each_patient[j]=FeatureMatrix_Session_each_patient[j].transpose() # transpose to datapoints,features
                
+#Moving average
+# We use a moving average as the annotations where done on video observations. This are never aprubt observations, therefore we smoothen out the data a bit to come closer to the annotation behaviour
+       if preaveraging:
+              for i in range(len(FeatureMatrix_Session_each_patient)):
+                     for F in range(np.size(FeatureMatrix_Session_each_patient[i],1)):
+                            FeatureMatrix_Session_each_patient[i][:,F]=\
+                            np.convolve(FeatureMatrix_Session_each_patient[i][:,F], np.ones((Movingwindow,))/Movingwindow, mode='same')  
+#Scaling 
+ 
        for i in range(len(FeatureMatrix_Session_each_patient)):
               if scaling=='Z': 
                      sc.fit(FeatureMatrix_Session_each_patient[i])
@@ -151,104 +190,39 @@ for k in range(len(Neonate)):
               else:
                      sys.exit('Misspelling of the scaling type')
                      
-       FeatureMatrix_each_patient_fromSession[k]=np.concatenate(FeatureMatrix_Session_each_patient)
-     
-                      
-#%% Change the annotations
-       
-if LoosingAnnot5:
-       count5=0
-       before5=0
-       for l in range(len(AnnotMatrix_each_patient)):
-              for  M in range(len(AnnotMatrix_each_patient[l])):
-                     if (AnnotMatrix_each_patient[l][M]==5) and count5==0:
-                            count5=count5+1
-                            before5=int(AnnotMatrix_each_patient[l][M-1])# save the state before state 5
-                     elif (AnnotMatrix_each_patient[l][M]==5) and count5!=0:
-                            count5=count5+1
-                     elif AnnotMatrix_each_patient[l][M]!=5 and count5!=0 and count5<=40 and before5==int(AnnotMatrix_each_patient[l][M]): # if 5 is inbewteen the same state; and if Not annotatable is on y 10 long(5min)
-                            AnnotMatrix_each_patient[l][M-count5:M]=int(AnnotMatrix_each_patient[l][M])
-                            count5=0 
-                            before5=0  
-                     elif AnnotMatrix_each_patient[l][M]!=5 and count5!=0 and count5<=10: # if there is another state following, but the duration of 5 is very short, still change to the following state
-                            AnnotMatrix_each_patient[l][M-count5:M]=int(AnnotMatrix_each_patient[l][M])
-                            count5=0 
-                            before5=0  
-                                                      
-if LoosingAnnot6:
-       count6=0;
-       before6=0
-       for l in range(len(AnnotMatrix_each_patient)):
-              for  M in range(len(AnnotMatrix_each_patient[l])):
-                     if (AnnotMatrix_each_patient[l][M]==6) and count6==0: 
-                            count6=count6+1
-                            before6=int(AnnotMatrix_each_patient[l][M-1]) # save the state before state 6
-                     elif (AnnotMatrix_each_patient[l][M]==6) and count6!=0 and M!=len(AnnotMatrix_each_patient[l])-1: # and not at the end
-                            count6=count6+1
-                     elif (AnnotMatrix_each_patient[l][M]!=6 and count6!=0) or (M==len(AnnotMatrix_each_patient[l])-1 and count6!=0): # len is for state at the end
-                            if direction6 and before6!=5:# replace with value before state 6 if not 5 otherwise use exeption and replace with the value after
-                                   AnnotMatrix_each_patient[l][M-count6:M]=before6
-                                   if M==len(AnnotMatrix_each_patient[l])-1:# if at the end, M is one smaller than len due to range starting from 0
-                                          AnnotMatrix_each_patient[l][M-count6:M+1]=before6
-                                   count6=0
-                                   before6=0                                   
-                            else:#replace with value after state 6
-                                   AnnotMatrix_each_patient[l][M-count6:M]=int(AnnotMatrix_each_patient[l][M])
-                                   count6=0
-                                   
-if LoosingAnnot6_2: #If before state 6 the state is 1 and following is 2 choose 2. Eerything else is like in Loosing6
-       count6=0;
-       before6=0
-       for l in range(len(AnnotMatrix_each_patient)):
-              for  M in range(len(AnnotMatrix_each_patient[l])):
-                     if (AnnotMatrix_each_patient[l][M]==6) and count6==0: 
-                            count6=count6+1
-                            before6=int(AnnotMatrix_each_patient[l][M-1]) # save the state before state 6
-                     elif (AnnotMatrix_each_patient[l][M]==6) and count6!=0 and M!=len(AnnotMatrix_each_patient[l])-1: # and not at the end
-                            count6=count6+1
-                     elif (AnnotMatrix_each_patient[l][M]!=6 and count6!=0) or (M==len(AnnotMatrix_each_patient[l])-1 and count6!=0): # len is for state at the end
-                            if direction6 and before6==1 and AnnotMatrix_each_patient[l][M]==2:# replace with value before state 6 if not 5 otherwise use exeption and replace with the value after
-                                   AnnotMatrix_each_patient[l][M-count6:M]=2
-                                   if M==len(AnnotMatrix_each_patient[l])-1:# if at the end, M is one smaller than len due to range starting from 0
-                                          AnnotMatrix_each_patient[l][M-count6:M+1]=2
-                                   count6=0
-                                   before6=0 
-                            elif direction6 and before6!=5:# replace with value before state 6 if not 5 otherwise use exeption and replace with the value after
-                                   AnnotMatrix_each_patient[l][M-count6:M]=before6
-                                   if M==len(AnnotMatrix_each_patient[l])-1:# if at the end, M is one smaller than len due to range starting from 0
-                                          AnnotMatrix_each_patient[l][M-count6:M+1]=before6
-                                   count6=0
-                                   before6=0                                   
-                            else:#replace with value after state 6
-                                   AnnotMatrix_each_patient[l][M-count6:M]=int(AnnotMatrix_each_patient[l][M])
-                                   count6=0    
-#                                   
-                            
-if Smoothing_short:
-       countSS=0
-       beforeSS=0
-       for l in range(len(AnnotMatrix_each_patient)):
-              for M in range(1,len(AnnotMatrix_each_patient[l])):# 1 as we want to compare M and M-1, so rnge should start at 1 and not 0
-                     if int(AnnotMatrix_each_patient[l][M])==int(AnnotMatrix_each_patient[l][M-1]):
-                            countSS=countSS+1
-                     elif (int(AnnotMatrix_each_patient[l][M])!=int(AnnotMatrix_each_patient[l][M-1])) and countSS!=0:
-                            if countSS>5:
-                                   rememberSS=int(AnnotMatrix_each_patient[l][M-1])
-                            if countSS<=3:
-                                   AnnotMatrix_each_patient[l][M-1-countSS:M]=rememberSS#int(AnnotMatrix_each_patient[l][M])
-                            countSS=0       
-                            countSS=countSS+1
+       FeatureMatrix_each_patient_fromSession[K]=np.concatenate(FeatureMatrix_Session_each_patient)
+       if postaveraging:             
+              NOF=np.arange(0,(np.size(FeatureMatrix_each_patient_fromSession[K],1))) # create range from 0-29 (lenth of features)
+              if exceptNOF:
+                     NOF= np.delete(NOF,FEAT)
+              if onlyNOF:
+                     NOF=FEAT
+              for F in NOF:#range(np.size(FeatureMatrix_each_patient_fromSession[K],1)):
+                     FeatureMatrix_each_patient_fromSession[K][:,F]=\
+                     np.convolve(FeatureMatrix_each_patient_fromSession[K][:,F], np.ones((Movingwindow,))/Movingwindow, mode='same')                
 
-if Pack4:
-       answer=[]
-       count4=0
-       for l in range(len(AnnotMatrix_each_patient)):
-              for M in range(len(AnnotMatrix_each_patient[l])): #stepping 5 min 10*30s
-                    AAA=list(AnnotMatrix_each_patient[l]).index(4)
+       if PolyTrans:
+              poly = PolynomialFeatures(degree=2)
+              NOpF=np.arange(0,(np.size(FeatureMatrix_each_patient_fromSession[K],1))) # create range from 0-29 (lenth of features)
+              if exceptNOpF:
+                     NOpF= np.delete(NOpF,FEATp)
+              if onlyNOpF:
+                     NOpF=FEAT
+                     
+              FeatureMatrix_each_patient_fromSession[K] = poly.fit_transform(FeatureMatrix_each_patient_fromSession[K][:,NOpF])
+                     
+     
 
                      
-                                     
+       AnnotMatrix_each_patient=AnnotationChanger(AnnotMatrix_each_patient,LoosingAnnot5,LoosingAnnot6,LoosingAnnot6_2,Smoothing_short,Pack4,direction6)
+        
+##Non-linear dimensionality reduction through Isometric Mapping                     
+#for K in range(len(Neonate)):                                           
+#       if NonlinTrans:       
+#              IM=Isomap(n_neighbors=5, n_components=2, eigen_solver='auto', tol=0, max_iter=None, path_method='auto', neighbors_algorithm='auto', n_jobs=1)
+#              IM.fit_transform(FeatureMatrix_each_patient_fromSession[K])
 
+              
 if plotting:
        for l in range(len(AnnotMatrix_each_patient)): 
           t_a[l]=np.linspace(0,len(AnnotMatrix_each_patient[l])*30/60,len(AnnotMatrix_each_patient[l]))  

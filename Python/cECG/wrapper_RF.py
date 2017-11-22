@@ -63,33 +63,48 @@ description='_123456_cECG_lst_micro_'
 consoleinuse='4'
 
 savepath='/home/310122653/Pyhton_Folder/cECG/Results/'
-
-#### SELECTING THE LABELS FOR SELECTED BABIES
-label=array([1,2,4]) # 1=AS 2=QS 3=Wake 4=Care-taking 5=NA 6= transition
-
-#### CREATE ALL POSSIBLE COMBINATIONS OUT OF 30 FEATURES. STOP AT Ncombos FEATURE SET(DUE TO SVM COMPUTATION TIME)
-lst = [0,1,2,3,4,5,6,7,8,9,10,11,12,14,15,16,17,18,19,20,21,22,23,24,25,26,27,28,29]
-#lst_old=[3,4,5,6,7,8,9,10,11,14,15,16,17,18,19,20,21,22,23,24,25,26] # From first paper to compare with new features
-#lst=lst_old
 """
 **************************************************************************
 CHANGE THE DATASET IN Loading_5min_mat_files_cECG.py IF USING ECG OR cECG
 **************************************************************************
 """
+
+# SELECTING THE LABELS FOR SELECTED BABIES
+label=array([1,2,4]) # 1=AS 2=QS 3=Wake 4=Care-taking 5=NA 6= transition
+#--------------------------
+
+# Feature list
+lst = [0,1,2,3,4,5,6,7,8,9,10,11,12,14,15,16,17,18,19,20,21,22,23,24,25,26,27,28,29]
+#lst_old=[3,4,5,6,7,8,9,10,11,14,15,16,17,18,19,20,21,22,23,24,25,26] # From first paper to compare with new features
+#lst=lst_old
+#--------------------------
+
 # SET INSTRUCTIONS
 classweight=1 # If classweights should be automatically ('balanced') determined and used for trainnig use: 0; IF they should be calculated by own function use 1
 saving=0
-Used_classifier='ERF' #RF=random forest ; ERF= extreme random forest; TR= Decission tree; GB= Gradient boosting
-drawing=1 # draw a the tree structure
+#--------------------------
+
+Used_classifier='RF' #RF=random forest ; ERF= extreme random forest; TR= Decission tree; GB= Gradient boosting
+drawing=0 # draw a the tree structure
+#--------------------------
+
 plotting=1 # plot annotations over time per patient
+compare=0 # additional plot
+#---------------------------
 
 #For up and downsampling of data
-SamplingMeth='SMOTE'  # 'NONE' 'SMOTE'  or 'ADASYN'
+SamplingMeth='NONE'  # 'NONE' 'SMOTE'  or 'ADASYN'
 ChoosenKind=0   # 0-3['regular','borderline1','borderline2','svm'] only when using SMOTE
 
+#---------------------------
 probability_threshold=1 # 1 to use different probabilities tan 0.5 to decide on the class. At the moment it is >=0.2 for any other calss then AS
 WhichMix='perSession' #perSession or all  # determine how the data was scaled. PEr session or just per patient
 
+
+
+"""
+CHECKUP
+"""
 t_a=list()
 classpredictions=list()
 Performance=list()
@@ -169,15 +184,24 @@ for V in range(len(babies)):
 
     if plotting:
            t_a.append(np.linspace(0,len(y_each_patient_test[V])*30/60,len(y_each_patient_test[V])))
-           plt.figure(V) 
-           plt.plot(t_a[V],y_each_patient_test[V])
-           plt.plot(t_a[V],classpredictions[V]+0.05)
-           plt.title([V])      
-    
+           if not compare:
+                  plt.figure(V) 
+                  plt.plot(t_a[V],y_each_patient_test[V])
+                  plt.plot(t_a[V],classpredictions[V]+0.04)
+                  plt.title([V])    
+           if compare:
+                  plt.figure(V) 
+                  plt.plot(t_a[V],classpredictions[V]+0.07)
+                  plt.title([V])
+            
 """
 ENDING stuff
 """
- 
+
+ValidatedPerformance_K.append(mean(ValidatedPerformance_K)) 
+AAAValidatedPerformance_all=array(mean(ValidatedPerformance_all,0))
+
+
 if saving:      
     save(savepath + 'ValidatedFimportance' + description, ValidatedFimportance)     
   
