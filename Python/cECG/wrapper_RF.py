@@ -16,7 +16,8 @@ print ('Python version: ', sep=' ', end='', flush=True);print( python_version())
 
 
 from Loading_5min_mat_files_cECG import \
-babies, AnnotMatrix_each_patient, FeatureMatrix_each_patient_all, Class_dict, features_dict, features_indx, FeatureMatrix_each_patient_fromSession
+babies, AnnotMatrix_each_patient, FeatureMatrix_each_patient_all, Class_dict, features_dict, features_indx, \
+FeatureMatrix_each_patient_fromSession, lst
 from Classifier_routines import Classifier_random_forest
 from GridSearch import *
 
@@ -54,6 +55,8 @@ Loading_5min_mat_files_cECG.py :
        CHOOSE WHICH BAIES ARE USED
        
        CHOOSE IF FEATURES ARE MERGED OR REPLACED
+       
+       Choose which FEatures to use
 
 **************************************************************************
 """
@@ -73,11 +76,6 @@ CHANGE THE DATASET IN Loading_5min_mat_files_cECG.py IF USING ECG OR cECG
 label=array([1,2,4]) # 1=AS 2=QS 3=Wake 4=Care-taking 5=NA 6= transition
 #--------------------------
 
-# Feature list
-lst = [0,1,2,3,4,5,6,7,8,9,10,11,12,14,15,16,17,18,19,20,21,22,23,24,25,26,27,28,29]
-#lst_old=[3,4,5,6,7,8,9,10,11,14,15,16,17,18,19,20,21,22,23,24,25,26] # From first paper to compare with new features
-#lst=lst_old
-#--------------------------
 
 # SET INSTRUCTIONS
 classweight=1 # If classweights should be automatically ('balanced') determined and used for trainnig use: 0; IF they should be calculated by own function use 1
@@ -100,7 +98,11 @@ ChoosenKind=0   # 0-3['regular','borderline1','borderline2','svm'] only when usi
 probability_threshold=1 # 1 to use different probabilities tan 0.5 to decide on the class. At the moment it is >=0.2 for any other calss then AS
 WhichMix='perSession' #perSession or all  # determine how the data was scaled. PEr session or just per patient
 
-
+# CHOOSING WHICH FEATURE MATRIX IS USED
+if WhichMix=='perSession':
+       FeatureMatrix_each_patient=FeatureMatrix_each_patient_fromSession       
+elif WhichMix=='all':
+       FeatureMatrix_each_patient=FeatureMatrix_each_patient_all
 
 """
 CHECKUP
@@ -113,7 +115,7 @@ ValidatedPerformance_K=list()
 ValidatedPerformance_micro=list()
 ValidatedPerformance_weigth=list()  
 ValidatedPerformance_all=zeros(shape=(len(babies),len(label)))
-ValidatedFimportance=zeros(shape=(len(babies),len(lst)))
+ValidatedFimportance=zeros(shape=(len(babies),len(FeatureMatrix_each_patient[0][1])))
 Validatedscoring=list() 
 
 ####Cheking for miss spelling
@@ -124,11 +126,7 @@ if SamplingMeth not in SampMeth:
 if WhichMix not in Whichmix:
        sys.exit('Misspelling in WhichMix')         
 
-# CHOOSING WHICH FEATURE MATRIX IS USED
-if WhichMix=='perSession':
-       FeatureMatrix_each_patient=FeatureMatrix_each_patient_fromSession       
-elif WhichMix=='all':
-       FeatureMatrix_each_patient=FeatureMatrix_each_patient_all
+
        
 """
 START
@@ -148,19 +146,20 @@ for V in range(len(babies)):
     FeatureMatrix_auswahl=[FeatureMatrix_each_patient[k] for k in selected_babies]          # get the feature values for selected babies
     idx=[in1d(AnnotMatrix_each_patient[sb],label) for sb in selected_babies]#.values()]     # which are the idices for AnnotMatrix_each_patient == label
     idx=[nonzero(idx[sb])[0] for sb in range(len(selected_babies))]#.values()]              # get the indices where True
+    Xfeat=[val[idx[sb],:] for sb, val in enumerate(FeatureMatrix_auswahl)]   #selecting the datapoints in label
     y_each_patient=[val[idx[sb],:] for sb, val in enumerate(AnnotMatrix_auswahl) if sb in range(len(selected_babies))] #get the values for y from idx and label    
-#### CREATING THE DATASET WITH x numbers of features WITH SPECIFIC LABELS FOR SELECTED BABIES  
-    Xfeat=[val[:,lst] for sb, val in enumerate(FeatureMatrix_auswahl)] # selecting the features to run
-    Xfeat=[val[idx[sb],:] for sb, val in enumerate(Xfeat)]   #selecting the datapoints in label
+#    Xfeat=[val[:,lst] for sb, val in enumerate(FeatureMatrix_auswahl)] # selecting the features to run
+#    Xfeat=[val[idx[sb],:] for sb, val in enumerate(Xfeat)]   #selecting the datapoints in label
  
     #creating another Set where all PAtients are included. In the Random Forest function one is selected for training. otherwise dimension missmatch   
     AnnotMatrix_auswahl_test=[AnnotMatrix_each_patient[k] for k in babies]              # get the annotation values for selected babies
     FeatureMatrix_auswahl_test=[FeatureMatrix_each_patient[k] for k in babies]
     idx_test=[in1d(AnnotMatrix_each_patient[sb],label) for sb in babies]#.values()]     # which are the idices for AnnotMatrix_each_patient == label
     idx_test=[nonzero(idx_test[sb])[0] for sb in range(len(babies))]#.values()]              # get the indices where True
+    Xfeat_test=[val[idx_test[sb],:] for sb, val in enumerate(FeatureMatrix_auswahl_test)]  
     y_each_patient_test=[val[idx_test[sb],:] for sb, val in enumerate(AnnotMatrix_auswahl_test) if sb in range(len(babies))] #get the values for y from idx and label
-    Xfeat_test=[val[:,lst] for sb, val in enumerate(FeatureMatrix_auswahl_test)] # using the feature values for features in lst2 to run
-    Xfeat_test=[val[idx_test[sb],:] for sb, val in enumerate(Xfeat_test)]  
+#    Xfeat_test=[val[:,lst] for sb, val in enumerate(FeatureMatrix_auswahl_test)] # using the feature values for features in lst2 to run
+#    Xfeat_test=[val[idx_test[sb],:] for sb, val in enumerate(Xfeat_test)]  
      
 
     #Validate with left out patient 

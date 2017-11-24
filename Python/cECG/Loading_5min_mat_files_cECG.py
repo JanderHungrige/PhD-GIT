@@ -26,8 +26,15 @@ Set variables *****************************************************************
 #***************
 dataset='ECG'  # Either ECG or cECG and later maybe MMC or InnerSense
 #***************
-selectedbabies =[0,1,2,3,4,5,6,7,8] #0-8 ('4','5','6','7','9','10','11','12','13')
+selectedbabies =[0,1,3,5,6,7] #0-8 ('4','5','6','7','9','10','11','12','13')
 #selectedbabies =[0,1,2,3,4,5,6,7,8] #0-8 ('4','5','6','7','9','10','11','12','13')
+#---------------------------
+
+# Feature list
+lst = [0,1,2,3,4,5,6,7,8,9,10,11,12,14,15,16,17,18,19,20,21,22,23,24,25,26,27,28,29]
+#lst_old=[3,4,5,6,7,8,9,10,11,14,15,16,17,18,19,20,21,22,23,24,25,26] # From first paper to compare with new features
+#lst=lst_old
+#---------------------------
 
 ux=0 # if using this on Linux cluster use 1 to change adresses
 scaling='Z' # Scaling Z or MM 
@@ -42,16 +49,16 @@ Smoothing_short=0 # # short part of any annotation are smoothed out.
 Pack4=0 # State 4 is often split in multible short parts. Merge them together as thebaby does not calm downin 1 min
 #---------------------------
 
-Movingwindow=10 # WIndow size for moving average
+Movingwindow=9 # WIndow size for moving average
 preaveraging=0
-postaveraging=0
+postaveraging=1
 exceptNOF=1 #Which Number of Features (NOF) should be used with moving average?  all =oth tzero; only some or all except some defined in FEAT
 onlyNOF=0 # [0,1,2,27,28,29]
 #FEAT=[0,1,2]
 FEAT=[1,2,27,28] # FRO CT
 #----------------------------
 
-PolyTrans=1 # use polinominal transformation on the Features specified in FEATp
+PolyTrans=1#use polinominal transformation on the Features specified in FEATp
 exceptNOpF=0 #Which Number of Features (NOpF) should be used with polynominal fit?  all =0; only some or all except some defined in FEATp
 onlyNOpF=0 # [0,1,2,27,28,29]
 FEATp=[1,2,27,28] # FRO CT
@@ -112,6 +119,7 @@ for j in range(len(dateien_each_patient)): # j=0 Features  j=1 Annotations
 #            AnnotMatrix_each_patient[k]=AnnotMatrix_each_patient[k][~np.isnan(AnnotMatrix_each_patient[k]).any(axis=1)]#deleting NAN and turning Matrix to datapoints,Features
 
 
+FeatureMatrix_each_patient_all=[val[:,lst] for sb, val in enumerate(FeatureMatrix_each_patient_all)] # selecting only the features in lst
                
 #### SCALE FEATURES
 sc = StandardScaler()
@@ -151,10 +159,12 @@ import glob
 from pathlib import Path
 
 FeatureMatrix_each_patient_fromSession=[None]*len(Neonate)
+FeatureMatrix_each_patient_fromSession_poly=[None]*len(Neonate)
+
 for K in range(len(Neonate)):      
-       SessionFileList=[]
+#       SessionFileList=[]
        Dateien=glob.glob(Sessionfolder +'FeatureMatrix_'+Neonate[K]+ '_**')
-       SessionFileList=[None]*(len(Neonate))
+#       SessionFileList=[None]*(len(Neonate))
        FeatureMatrix_Session_each_patient=[None]*len(Dateien)
 
 #       FeatureMatrix_each_patient_Session=[0]*len(Neonate)
@@ -170,6 +180,7 @@ for K in range(len(Neonate)):
     #NANs can be in as there are only NaNs with NaN annotations. Nan al label is not used
                FeatureMatrix_Session_each_patient[j]=matlabfile.get('FeatureMatrix') 
                FeatureMatrix_Session_each_patient[j]=FeatureMatrix_Session_each_patient[j].transpose() # transpose to datapoints,features
+                              
                
 #Moving average
 # We use a moving average as the annotations where done on video observations. This are never aprubt observations, therefore we smoothen out the data a bit to come closer to the annotation behaviour
@@ -191,6 +202,33 @@ for K in range(len(Neonate)):
                      sys.exit('Misspelling of the scaling type')
                      
        FeatureMatrix_each_patient_fromSession[K]=np.concatenate(FeatureMatrix_Session_each_patient)
+       
+FeatureMatrix_each_patient_fromSession=[val[:,lst] for sb, val in enumerate(FeatureMatrix_each_patient_fromSession)] # selecting only the features used iin lst
+       
+       
+for K in range(len(Neonate)):           
+
+       if PolyTrans:
+              poly = PolynomialFeatures(degree=2)
+              NOpF=np.arange(0,(np.size(FeatureMatrix_each_patient_fromSession[K],1))) # create range from 0-29 (lenth of features)
+              if exceptNOpF:
+                     NOpF= np.delete(NOpF,FEATp)
+              if onlyNOpF:
+                     NOpF=FEATp
+                     
+              FeatureMatrix_each_patient_fromSession_poly[K] = poly.fit_transform(FeatureMatrix_each_patient_fromSession[K][:,NOpF]) # transform the old features into old FEatures and feature combinations
+              Nr_of_orig_Features=len(FeatureMatrix_each_patient_fromSession[K][0]) # to check for dublicates a few lines down we need the old length of the Features
+              FeatureMatrix_each_patient_fromSession[K]=np.hstack((FeatureMatrix_each_patient_fromSession[K],FeatureMatrix_each_patient_fromSession_poly[K][:,1:]))#merge the transformed and the old features (transformation only work on FEAT).Not first column as it is all 1
+              
+              Cindex=[]
+              for i in range(Nr_of_orig_Features):# now we search fro dublicates as we merged the old and the transformed features
+                     for h in [x for x in range(len(FeatureMatrix_each_patient_fromSession[K][0])) if x!=i]:
+                            dublicate_col=(FeatureMatrix_each_patient_fromSession[K][:,i])==(FeatureMatrix_each_patient_fromSession[K][:,h])
+                            if all(dublicate_col)==True:
+                                   Cindex=np.append(Cindex,h)                            
+              FeatureMatrix_each_patient_fromSession[K]=np.delete(FeatureMatrix_each_patient_fromSession[K],Cindex,1)# delet all the doublicate features columns   
+#              lst=range(len(FeatureMatrix_each_patient_fromSession[]))
+              
        if postaveraging:             
               NOF=np.arange(0,(np.size(FeatureMatrix_each_patient_fromSession[K],1))) # create range from 0-29 (lenth of features)
               if exceptNOF:
@@ -200,21 +238,8 @@ for K in range(len(Neonate)):
               for F in NOF:#range(np.size(FeatureMatrix_each_patient_fromSession[K],1)):
                      FeatureMatrix_each_patient_fromSession[K][:,F]=\
                      np.convolve(FeatureMatrix_each_patient_fromSession[K][:,F], np.ones((Movingwindow,))/Movingwindow, mode='same')                
-
-       if PolyTrans:
-              poly = PolynomialFeatures(degree=2)
-              NOpF=np.arange(0,(np.size(FeatureMatrix_each_patient_fromSession[K],1))) # create range from 0-29 (lenth of features)
-              if exceptNOpF:
-                     NOpF= np.delete(NOpF,FEATp)
-              if onlyNOpF:
-                     NOpF=FEAT
-                     
-              FeatureMatrix_each_patient_fromSession[K] = poly.fit_transform(FeatureMatrix_each_patient_fromSession[K][:,NOpF])
-                     
-     
-
-                     
-       AnnotMatrix_each_patient=AnnotationChanger(AnnotMatrix_each_patient,LoosingAnnot5,LoosingAnnot6,LoosingAnnot6_2,Smoothing_short,Pack4,direction6)
+              
+AnnotMatrix_each_patient=AnnotationChanger(AnnotMatrix_each_patient,LoosingAnnot5,LoosingAnnot6,LoosingAnnot6_2,Smoothing_short,Pack4,direction6)
         
 ##Non-linear dimensionality reduction through Isometric Mapping                     
 #for K in range(len(Neonate)):                                           
