@@ -42,7 +42,7 @@ from Use_imbalanced_learn import cmplx_Oversampling
 import pdb# use pdb.set_trace() as breakpoint
 
 #probthres=0.25
-probthres_Grid=[0.15,0.2,0.22,0.25,0.27,0.3,0.33,0.35,0.37,0.4,0.42,0.44,0.5]
+probthres_Grid=[0.10,0.15,0.2,0.22,0.25,0.27,0.3,0.33,0.35,0.37,0.4,0.42,0.44,0.5]
 """
 Without Sample weights
 """
@@ -299,7 +299,7 @@ Random Forrest
 '''   
 def Classifier_random_forest(Xfeat_test, Xfeat,y_each_patient_test, y_each_patient, selected_babies, \
                               selected_test, label,classweight, Used_classifier, drawing, lst, ChoosenKind,\
-                              SamplingMeth,probability_threshold,N,crit,msl):
+                              SamplingMeth,probability_threshold,N,crit,msl,deciding_performance_measure):
        
 
 #### CREATING THE sampleweight FOR SELECTED BABIES  
@@ -424,8 +424,15 @@ def Classifier_random_forest(Xfeat_test, Xfeat,y_each_patient_test, y_each_patie
                                                                                   
                              elif(probs[i,1])>=probthres: # if we have only two labels searching for max does not work
                                     preliminary_pred[i]=label[1]# CHange the label in prediction to the second label
-#!!!!!!!! To change klassifier for perfomance measure       
-                      preliminaryK[k]=cohen_kappa_score(y_test.ravel(),preliminary_pred,labels=label) # Find the threshold where Kapa gets max
+#!!!!!!!! To change klassifier for perfomance measure 
+                      if deciding_performance_measure=='Kappa':              
+                             preliminaryK[k]=cohen_kappa_score(y_test.ravel(),preliminary_pred,labels=label) # Find the threshold where Kapa gets max
+                      elif deciding_performance_measure=='F1_second_label':
+                             preliminaryK[k]=f1_score(y_test.ravel(), preliminary_pred,labels=label, average=None)[1]
+                      elif deciding_performance_measure=='F1_third_label':
+                             preliminaryK[k]=f1_score(y_test.ravel(), preliminary_pred,labels=label, average=None)[2]
+                      elif deciding_performance_measure=='F1_fourth_label':
+                             preliminaryK[k]=f1_score(y_test.ravel(), preliminary_pred,labels=label, average=None)[3]       
 #!!!!!!!! To change klassifier for perfomance measure  
                maxK=preliminaryK.argmax(axis=0)
                print('Used probability Thresh: %.2f' % probthres_Grid[maxK])

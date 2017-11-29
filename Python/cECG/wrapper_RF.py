@@ -122,10 +122,10 @@ ChoosenKind=0   # 0-3['regular','borderline1','borderline2','svm'] only when usi
 probability_threshold=1 # 1 to use different probabilities tan 0.5 to decide on the class. At the moment it is >=0.2 for any other calss then AS
 WhichMix='perSession' #perSession or all  # determine how the data was scaled. PEr session or just per patient
 #--------------------
-N=2000 # Estimators for the trees
+N=100 # Estimators for the trees
 crit='gini' #gini or entropy method for trees 
 msl=5  #min_sample_leafe
-
+deciding_performance_measure='F1_second_label' #Kappa , F1_second_label, F1_third_label, F1_fourth_label
 """
 CHECKUP
 """
@@ -180,8 +180,9 @@ RES_Kappa_Performance_QS,\
 RES_F1_all_QS\
 =leave_one_out_cross_validation(babies,AnnotMatrix_each_patient,FeatureMatrix_each_patient,\
          label,classweight, Used_classifier, drawing, lst,ChoosenKind,SamplingMeth,probability_threshold,plotting,compare,saving,\
-         N,crit,msl)
+         N,crit,msl,deciding_performance_measure)
 
+RES_F1_all_QS_mean=array(mean(RES_F1_all_QS,0))
 
 """
 RUN 2  CT
@@ -204,7 +205,7 @@ onlyNOF=0 # [0,1,2,27,28,29]
 FEAT=[1,2,27,28] # FRO CT
 #----------------------------
 
-PolyTrans=0#use polinominal transformation on the Features specified in FEATp
+PolyTrans=1#use polinominal transformation on the Features specified in FEATp
 ExpFactor=2# which degree of polinomonal (2)
 exceptNOpF= 0#Which Number of Features (NOpF) should be used with polynominal fit?  all =0; only some or all except some defined in FEATp
 onlyNOpF=1 # [0,1,2,27,28,29]
@@ -214,7 +215,8 @@ FEATp=[0,3,4,5]
 N=50 # Estimators for the trees
 crit='entropy' #gini or entropy
 msl=3  #min_sample_leafe
-    
+deciding_performance_measure='F1_third_label' #Kappa , F1_second_label, F1_third_label, F1_fourth_label
+
 
 
 babies,AnnotMatrix_each_patient,FeatureMatrix_each_patient= loadingdata(WhichMix)                  
@@ -235,8 +237,12 @@ RES_Kappa_Performance_CT,\
 RES_F1_all_CT\
 =leave_one_out_cross_validation(babies,AnnotMatrix_each_patient,FeatureMatrix_each_patient,\
          label,classweight, Used_classifier, drawing, lst, ChoosenKind,SamplingMeth,probability_threshold,plotting,compare,saving,\
-         N,crit,msl)
+         N,crit,msl,deciding_performance_measure)
 
+RES_F1_all_CT_mean=array(mean(RES_F1_all_CT,0))
+
+#Optimize prediction by taking predictions for specific classes from differnt classifiers
+#The base predicitions are the one from QS classifier. Over that each 4(care taking) is decided/changed by the classifer results for CT
 classpredictions=RES_classpredictions_QS[:]
 for o in range(len(RES_classpredictions_CT)):
        for p in range(len(RES_classpredictions_CT[o])):  
@@ -247,22 +253,23 @@ for o in range(len(RES_classpredictions_CT)):
                      classpredictions[o][p]=RES_classpredictions_CT[o][p]
               elif classpredictions[o][p]!=4 and RES_classpredictions_CT[o][p]!=4:
                      classpredictions[o][p]=classpredictions[o][p]
-
-RES_F1_all_merged=zeros(shape=(len(babies),len(label)))
-#RES_KAPPA=zeros(shape=(len(babies),1))
-RES_KAPPA=list()
-
-for K in range(len(babies)):
-       RES_KAPPA.append(cohen_kappa_score(y_each_patient[K].ravel(),classpredictions[K],labels=label)) # Find the threshold where Kapaa gets max
-       RES_F1_all_merged[K]=f1_score(y_each_patient[K].ravel(), classpredictions[K],labels=label, average=None)#, pos_label=None)
-       
-       
+# Kappa over all annotations and predictions merged together
 tmp_orig=vstack(y_each_patient)
 tmp_pred=hstack(classpredictions)
 
-RES_F1_all_merged=cohen_kappa_score(tmp_orig.ravel(),tmp_pred.ravel(),labels=label)
-RES_KAPPA.append(mean(RES_KAPPA)) 
-RES_F1_all_mean=array(mean(RES_F1_all,0))
+#Performance of optimized predictions 
+RES1_F1_all=zeros(shape=(len(babies),len(label)))
+RES1_KAPPA=list()
+
+for K in range(len(babies)):
+       RES1_KAPPA.append(cohen_kappa_score(y_each_patient[K].ravel(),classpredictions[K],labels=label)) # Find the threshold where Kapaa gets max
+       RES1_F1_all[K]=f1_score(y_each_patient[K].ravel(), classpredictions[K],labels=label, average=None)#, pos_label=None)
+       
+RES1_KAPPA.append(mean(RES1_KAPPA))
+RES1_F1_all_mean=array(mean(RES1_F1_all,0))    
+RES1_KAPPA_overall=cohen_kappa_score(tmp_orig.ravel(),tmp_pred.ravel(),labels=label)
+
+
 
 
 
