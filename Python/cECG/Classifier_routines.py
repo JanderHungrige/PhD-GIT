@@ -299,7 +299,9 @@ Random Forrest
 '''   
 def Classifier_random_forest(Xfeat_test, Xfeat,y_each_patient_test, y_each_patient, selected_babies, \
                               selected_test, label,classweight, Used_classifier, drawing, lst, ChoosenKind,\
-                              SamplingMeth,probability_threshold):
+                              SamplingMeth,probability_threshold,N,crit,msl):
+       
+
 #### CREATING THE sampleweight FOR SELECTED BABIES  
 #### TRAIN CLASSIFIER
     meanaccLOO=[];accLOO=[];testsubject=[];tpr_mean=[];counter=0;
@@ -344,9 +346,6 @@ def Classifier_random_forest(Xfeat_test, Xfeat,y_each_patient_test, y_each_patie
             
             
 #The Random Forest / Extreme Random Forest / Gradiant boosting
-    N=100
-    crit='gini' #gini or entropy
-    msl=3  #min_sample_leafe
 
     if Used_classifier=='TR':
         if (classweight==1) and CW==1: 
@@ -419,21 +418,21 @@ def Classifier_random_forest(Xfeat_test, Xfeat,y_each_patient_test, y_each_patie
                       probthres=probthres_Grid[k]
                       for i in range(len(probs)):
                              if len(label)>2:
-                                    if any(probs[i,1:]>=probthres): #IF THE PROBABILITY IS HIGHER THAN ... USE THAT CLASS INSTEAD OF AS
+                                    if any(probs[i,1:]>=probthres) and probs[i,0]<0.7: #IF THE PROBABILITY IS HIGHER THAN ... USE THAT CLASS INSTEAD OF AS. But if AS is over ~0.7 still take AS
                                            highprob=np.argmax(probs[i,1:]) # otherwise search for max prob of the labels other than AS
                                            preliminary_pred[i]=label[highprob+1]# change the label in predictions to the new found label; +1 as we cut the array before by 1. Otherwise false index
                                                                                   
                              elif(probs[i,1])>=probthres: # if we have only two labels searching for max does not work
                                     preliminary_pred[i]=label[1]# CHange the label in prediction to the second label
 #!!!!!!!! To change klassifier for perfomance measure       
-                      preliminaryK[k]=cohen_kappa_score(y_test.ravel(),preliminary_pred,labels=label) # Find the threshold where Kapaa gets max
+                      preliminaryK[k]=cohen_kappa_score(y_test.ravel(),preliminary_pred,labels=label) # Find the threshold where Kapa gets max
 #!!!!!!!! To change klassifier for perfomance measure  
                maxK=preliminaryK.argmax(axis=0)
                print('Used probability Thresh: %.2f' % probthres_Grid[maxK])
                probthres=probthres_Grid[maxK] #repeat creating the predictions with the optimal probabilty threshold
                for i in range(len(probs)):
                       if len(label)>2:
-                             if any(probs[i,1:]>=probthres): #IF THE PROBABILITY IS HIGHER THAN ... USE THAT CLASS INSTEAD OF AS
+                             if any(probs[i,1:]>=probthres) and probs[i,0]<0.7: #IF THE PROBABILITY IS HIGHER THAN ... USE THAT CLASS INSTEAD OF AS. But if AS is over ~0.7 still take AS
                                     highprob=np.argmax(probs[i,1:]) # otherwise search for max prob of the labels other than AS
                                     prediction[i]=label[highprob+1]# change the label in predictions to the new found label; +1 as we cut the array before by 1. Otherwise false index
                                                                            

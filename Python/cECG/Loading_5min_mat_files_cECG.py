@@ -229,6 +229,8 @@ def Loading_data_perSession(dataset,selectedbabies,lst,ux,scaling,\
        FeatureMatrix_each_patient_fromSession=[None]*len(Neonate)
        FeatureMatrix_each_patient_fromSession_poly=[None]*len(Neonate)
        
+       AnnotMatrix_each_patient=Loading_Annotations(dataset,selectedbabies,ux,plotting) # loading Annotations
+       
        for K in range(len(Neonate)):      
        #       SessionFileList=[]
               Dateien=glob.glob(Sessionfolder +'FeatureMatrix_'+Neonate[K]+ '_**')
@@ -314,13 +316,13 @@ def Loading_data_perSession(dataset,selectedbabies,lst,ux,scaling,\
        #              IM=Isomap(n_neighbors=5, n_components=2, eigen_solver='auto', tol=0, max_iter=None, path_method='auto', neighbors_algorithm='auto', n_jobs=1)
        #              IM.fit_transform(FeatureMatrix_each_patient_fromSession[K])
        
-                     
-       if plotting:
-              for l in range(len(AnnotMatrix_each_patient)): 
-                 t_a[l]=np.linspace(0,len(AnnotMatrix_each_patient[l])*30/60,len(AnnotMatrix_each_patient[l]))  
-                 plt.figure(l) 
-                 plt.plot(t_a[l],AnnotMatrix_each_patient[l]-0.1)
-                 plt.title([l])                            
+#                     
+#       if plotting:
+#              for l in range(len(AnnotMatrix_each_patient)): 
+#                 t_a[l]=np.linspace(0,len(AnnotMatrix_each_patient[l])*30/60,len(AnnotMatrix_each_patient[l]))  
+#                 plt.figure(l) 
+#                 plt.plot(t_a[l],AnnotMatrix_each_patient[l]-0.1)
+#                 plt.title([l])                            
                                     
                  
        return babies, AnnotMatrix_each_patient, FeatureMatrix_each_patient_fromSession
@@ -399,10 +401,10 @@ def Loading_Annotations(dataset,selectedbabies,ux,plotting):
                    AnnotMatrix_each_patient[k]=matlabfile.get('Annotations')  
                    AnnotMatrix_each_patient[k]=AnnotMatrix_each_patient[k].transpose() # transpose to datapoints,annotations
                    t_a[k]=np.linspace(0,len(AnnotMatrix_each_patient[k])*30/60,len(AnnotMatrix_each_patient[k]))  
-                   if plotting:
-                        plt.figure(k) 
-                        plt.plot(t_a[k],AnnotMatrix_each_patient[k])
-                        plt.title([k])
+#                   if plotting:
+#                        plt.figure(k) 
+#                        plt.plot(t_a[k],AnnotMatrix_each_patient[k])
+#                        plt.title([k])
                         
        return AnnotMatrix_each_patient
        
