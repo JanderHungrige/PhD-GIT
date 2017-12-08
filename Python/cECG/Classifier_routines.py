@@ -42,12 +42,12 @@ from Use_imbalanced_learn import cmplx_Oversampling
 import pdb# use pdb.set_trace() as breakpoint
 
 #probthres=0.25
-probthres_Grid=[0.10,0.15,0.2,0.22,0.25,0.27,0.3,0.33,0.35,0.37,0.4,0.42,0.44,0.5]
+probthres_Grid=[0.15,0.2,0.22,0.25,0.27,0.3,0.33,0.35,0.37,0.4,0.42,0.44,0.5]
 """
 Without Sample weights
 """
-def Classifier_routine_no_sampelWeight(Xfeat,y_each_patient,selected_babies,label,classweight,C,gamma,\
-                                       ChoosenKind,SamplingMeth,probability_threshold,SVMtype,strategie):
+def SVM_routine_no_sampelWeight(Xfeat,y_each_patient,selected_babies,label,classweight,C,gamma,\
+                                       ChoosenKind,SamplingMeth,probability_threshold,SVMtype,strategie,deciding_performance_measure):
 #### TRAIN CLASSIFIER
     meanaccLOO=[];accLOO=[];testsubject=[];tpr_mean=[];counter=0;
     mean_tpr = 0.0;mean_fpr = np.linspace(0, 1, 100)
@@ -128,9 +128,16 @@ def Classifier_routine_no_sampelWeight(Xfeat,y_each_patient,selected_babies,labe
                                                                                   
                                     elif(probs[i,1])>=probthres: # if we have only two labels searching for max does not work
                                            preliminary_pred[i]=label[1]# CHange the label in prediction to the second label
-#To change klassifier for perfomance measure       
-                             preliminaryK[k]=cohen_kappa_score(y_test.ravel(),preliminary_pred,labels=label) # Find the threshold where Kapaa gets max
-#To change klassifier for perfomance measure  
+#!!!!!!!! To change klassifier for perfomance measure 
+                      if deciding_performance_measure=='Kappa':              
+                             preliminaryK[k]=cohen_kappa_score(y_test.ravel(),preliminary_pred,labels=label) # Find the threshold where Kapa gets max
+                      elif deciding_performance_measure=='F1_second_label':
+                             preliminaryK[k]=f1_score(y_test.ravel(), preliminary_pred,labels=label, average=None)[1]
+                      elif deciding_performance_measure=='F1_third_label':
+                             preliminaryK[k]=f1_score(y_test.ravel(), preliminary_pred,labels=label, average=None)[2]
+                      elif deciding_performance_measure=='F1_fourth_label':
+                             preliminaryK[k]=f1_score(y_test.ravel(), preliminary_pred,labels=label, average=None)[3]       
+#!!!!!!!! To change klassifier for perfomance measure   
                       maxK=preliminaryK.argmax(axis=0)
                       print('Used probability Thresh: %.2f' % probthres_Grid[maxK])
                       probthres=probthres_Grid[maxK] #repeat creating the predictions with the optimal probabilty threshold
@@ -177,7 +184,7 @@ def Classifier_routine_no_sampelWeight(Xfeat,y_each_patient,selected_babies,labe
 VALIDATION
 """             
 def Validate_with_classifier(Xfeat,y_each_patient,selected_babies,selected_test,label,classweight,C,gamma,\
-                                       ChoosenKind,SamplingMeth,probability_threshold,SVMtype,strategie):
+                                       ChoosenKind,SamplingMeth,probability_threshold,SVMtype,strategie,deciding_performance_measure):
   
 #### TRAIN CLASSIFIER
     meanaccLOO=[];accLOO=[];testsubject=[];tpr_mean=[];counter=0;
@@ -252,8 +259,15 @@ def Validate_with_classifier(Xfeat,y_each_patient,selected_babies,selected_test,
                                                                                   
                              elif(probs[i,1])>=probthres: # if we have only two labels searching for max does not work
                                     preliminary_pred[i]=label[1]# CHange the label in prediction to the second label
-#!!!!!!!! To change klassifier for perfomance measure       
-                      preliminaryK[k]=cohen_kappa_score(y_test.ravel(),preliminary_pred,labels=label) # Find the threshold where Kapaa gets max
+#!!!!!!!! To change klassifier for perfomance measure 
+                      if deciding_performance_measure=='Kappa':              
+                             preliminaryK[k]=cohen_kappa_score(y_test.ravel(),preliminary_pred,labels=label) # Find the threshold where Kapa gets max
+                      elif deciding_performance_measure=='F1_second_label':
+                             preliminaryK[k]=f1_score(y_test.ravel(), preliminary_pred,labels=label, average=None)[1]
+                      elif deciding_performance_measure=='F1_third_label':
+                             preliminaryK[k]=f1_score(y_test.ravel(), preliminary_pred,labels=label, average=None)[2]
+                      elif deciding_performance_measure=='F1_fourth_label':
+                             preliminaryK[k]=f1_score(y_test.ravel(), preliminary_pred,labels=label, average=None)[3]       
 #!!!!!!!! To change klassifier for perfomance measure  
                maxK=preliminaryK.argmax(axis=0)
                print('Used probability Thresh: %.2f' % probthres_Grid[maxK])
@@ -395,7 +409,7 @@ def Classifier_random_forest(Xfeat_test, Xfeat,y_each_patient_test, y_each_patie
                                           n_jobs=1, random_state=42, verbose=0, warm_start=False,\
                                           )
     elif Used_classifier=='GB':
-      clf = GradientBoostingClassifier(loss="deviance", learning_rate=0.1, n_estimators=1000, subsample=1, \
+      clf = GradientBoostingClassifier(loss="deviance", learning_rate=0.1, n_estimators=N, subsample=1, \
                           criterion='friedman_mse', min_samples_split=2, min_samples_leaf=1, min_weight_fraction_leaf=0.0,\
                           max_depth=30, min_impurity_decrease=0.0, min_impurity_split=None, init=None, \
                           random_state=42, max_features=None, verbose=0, max_leaf_nodes=None, warm_start=False, presort='auto')
@@ -488,6 +502,6 @@ def Classifier_random_forest(Xfeat_test, Xfeat,y_each_patient_test, y_each_patie
 #                 
         
                   
-    return resultsF1_macro,resultsK,resultsF1_micro,resultsF1_weight,resultsF1_all,Fimportances,scoring,prediction
+    return resultsF1_macro,resultsK,resultsF1_micro,resultsF1_weight,resultsF1_all,Fimportances,scoring,prediction,probs
         #F1 returns with average='none' a F1 score for each label or macro=meaned
         

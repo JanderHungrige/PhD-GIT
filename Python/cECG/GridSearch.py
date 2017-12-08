@@ -10,7 +10,7 @@ Created on Wed Oct  4 14:09:18 2017
 """
 
 #from Loading_5min_mat_files_cECG import AnnotMatrix_each_patient, FeatureMatrix_each_patient, Class_dict, features_dict, features_indx
-from Classifier_routines import Classifier_routine_no_sampelWeight
+from Classifier_routines import SVM_routine_no_sampelWeight
 
 import itertools
 import numpy 
@@ -35,7 +35,7 @@ import pdb # use pdb.set_trace() as breakpoint
 
 
 def GridSearch_all(plotting_grid,gridC,gridY,lst,label,selected_babies,AnnotMatrix_each_patient,\
-                   FeatureMatrix_each_patient,classweight,ChoosenKind,SamplingMeth,probability_threshold,SVMtype,strategie):
+                   FeatureMatrix_each_patient,classweight,ChoosenKind,SamplingMeth,probability_threshold,SVMtype,strategie,deciding_performance_measure):
     
 
     #### Create Matrices for selected babies
@@ -58,8 +58,9 @@ def GridSearch_all(plotting_grid,gridC,gridY,lst,label,selected_babies,AnnotMatr
         for Y in range(len(gridY)):
             print('C:', sep='', end='', flush=True); print(gridC[C], sep='', end='', flush=True)
             print('  Y:', sep='', end='', flush=True); print(gridY[Y], sep='', end='', flush=True)
-            result=Classifier_routine_no_sampelWeight(Xfeat,y_each_patient,selected_babies,label,classweight,gridC[C],gridY[Y])\
-            [2] # 0-4 at the moment: macro micro weight all kappa #[0] says take only first return value from function
+            result=SVM_routine_no_sampelWeight(Xfeat,y_each_patient,selected_babies,label,classweight,gridC[C],gridY[Y],\
+                                                      ChoosenKind,SamplingMeth,probability_threshold,SVMtype,strategie,deciding_performance_measure)\
+            [2] # 0-4 at the moment: macro micro weight all kappa #[0] says take only first return value from function            
             print(' Result %.3f' % result)
             differnt_c_y_results[C,Y]=result
 #            differnt_y_results=[differnt_y_results,result] # create column for each Y
@@ -108,7 +109,7 @@ def GridSearch_commonFeatures(plotting_grid,gridC,gridY,lst,label,Xfeat,y_each_p
             print('C:', sep='', end='', flush=True); print(gridC[C], sep='', end='', flush=True)
             print('  Y:', sep='', end='', flush=True); print(gridY[Y], sep='', end='', flush=True)
             result=Classifier_routine_no_sampelWeight(Xfeat,y_each_patient,selected_babies,label,classweight,gridC[C],gridY[Y],\
-                                                      ChoosenKind,SamplingMeth,probability_threshold,SVMtype,strategie)\
+                                                      ChoosenKind,SamplingMeth,probability_threshold,SVMtype,strategie,deciding_performance_measure)\
                                                       [2]# 0-4 at the moment: macro micro weight all kappa #[0] says take only first return value from function
             print(' Result %.3f' % result)
 #            pdb.set_trace()

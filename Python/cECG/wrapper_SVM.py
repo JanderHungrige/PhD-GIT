@@ -16,8 +16,10 @@ from platform import python_version
 print ('Python version: ', sep=' ', end='', flush=True);print( python_version())	
 
 
-from Loading_5min_mat_files_cECG import AnnotMatrix_each_patient, FeatureMatrix_each_patient, Class_dict, features_dict, features_indx
-from Classifier_routines import Classifier_routine_no_sampelWeight, Validate_with_classifier
+
+from Loading_5min_mat_files_cECG import Loading_data_all,Loading_data_perSession,Feature_names,Loading_Annotations
+from Classifier_routines import SVM_routine_no_sampelWeight
+from Classifier_routines import Validate_with_classifier
 from GridSearch import *
 
 import itertools
@@ -42,7 +44,9 @@ import pdb # use pdb.set_trace() as breakpoint
 import time
 start_time = time.time()
 Klassifier=['RF','ERF','TR','GB']
-SampMeth=['SMOTE','ADASYN']
+SampMeth=['NONE','SMOTE','ADASYN']
+Whichmix=['perSession', 'all']
+
 
 
 """
@@ -52,7 +56,7 @@ CHANGE THE DATASET IN Loading_5min_mat_files_cECG.py IF USING ECG OR cECG
 """
 #_Labels_ECG_Featurelist_Scoring_classweigt_C_gamma
 
-description='_12_ECG_lst_Kappa_SMOTE3_Kernel_3_001'
+description='_12_ECG_lst_Kappa_SMOTE3_Kernel_3_001_61_direct1_51_Z'
 consoleinuse='4'
 
 savepath='/home/310122653/Pyhton_Folder/cECG/Results/'
@@ -71,26 +75,75 @@ CHANGE THE DATASET IN Loading_5min_mat_files_cECG.py IF USING ECG OR cECG
 **************************************************************************
 """
 
-classweight=0 # If classweights should be automatically ('balanced') determined and used for trainnig use: 0; IF they should be calculated by own function use 1
-saving=0
 Ncombos=1
-preGridsearch=0
+preGridsearch=1
 finalGridsearch=1
-plotting_grid=1
+plotting_grid=0
 c=3
 gamma=0.001
-drawing=1 # draw a the tree structure
+
+dataset='cECG'  # Either ECG or cECG and later maybe MMC or InnerSense
+#***************
+selectedbabies =[2,3,5,6,7,8]  #0-8 ('4','5','6','7','9','10','11','12','13')
+#---------------------------
+# Feature list
+lst = [0,1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16,17,18,19,20,21,22,23,24,25,26,27,28,29]
+#lst_old=[3,4,5,6,7,8,9,10,11,14,15,16,17,18,19,20,21,22,23,24,25,26] # From first paper to compare with new features
+#lst=lst_old
+#---------------------------
+label=[1,2,6] # 1=AS 2=QS 3=Wake 4=Care-taking 5=NA 6= transition
+#--------------------------
+classweight=1 # If classweights should be automatically ('balanced') determined and used for trainnig use: 0; IF they should be calculated by own function use 1
+saving=0
+ux=0 # if using this on Linux cluster use 1 to change adresses
+scaling='Z' # Scaling Z or MM 
+#---------------------------
+LoosingAnnot5= 0# exchange state 5 if inbetween another state with this state (also only if length <= x)
+LoosingAnnot6=0  #Exchange state 6 with the following or previouse state (depending on direction)
+LoosingAnnot6_2=0 # as above, but chooses always 2 when 6 was lead into with 1
+direction6=0 # if State 6 should be replaced with the state before, use =1; odtherwise with after, use =0. Annotators used before.
+Smoothing_short=0 # # short part of any annotation are smoothed out. 
+Pack4=0 # State 4 is often split in multible short parts. Merge them together as thebaby does not calm downin 1 min
+merge34=1 # Merging state 3(wake) and 4(CT) togehter. Geoth 4 afterwards
+if merge34 and 3 in label:
+       label.remove(3)
+#---------------------------
+Movingwindow=10 # WIndow size for moving average
+preaveraging=0
+postaveraging=1
+exceptNOF=1 #Which Number of Features (NOF) should be used with moving average?  all =oth tzero; only some or all except some defined in FEAT
+onlyNOF=0 # [0,1,2,27,28,29]
+FEAT=[0,1,2]
+#----------------------------
+PolyTrans=0#use polinominal transformation on the Features specified in FEATp
+ExpFactor=2# which degree of polinomonal (2)
+exceptNOpF= 0#Which Number of Features (NOpF) should be used with polynominal fit?  all =0; only some or all except some defined in FEATp
+onlyNOpF=1 # [0,1,2,27,28,29]
+FEATp=[0,3,4,5]
+RBFkernel=1
+#--------------------------
+Used_classifier='GB' #RF=random forest ; ERF= extreme random forest; TR= Decission tree; GB= Gradient boosting
+drawing=0 # draw a the tree structure
+SVMtype='Kernel'  #Kernel or Linear
+Kernel='RBF'#'polynomial'   or ' RBF'  
+strategie='ovr' # or or crammer_singer tochoose for LinearSVM multiclass stragey
+#--------------------------
+plotting=0 # plot annotations over time per patient
+compare=0 # additional plot
+#---------------------------
 #For up and downsampling of data
-ChoosenKind=3   # 0-3['regular','borderline1','borderline2','svm'] only when using SMOTE
-SamplingMeth='SMOTE'  # 'SMOTE'  or 'ADASYN'
+SamplingMeth='NONE'  # 'NONE' 'SMOTE'  or 'ADASYN'
+ChoosenKind=0   # 0-3['regular','borderline1','borderline2','svm'] only when using SMOTE
+#---------------------------
 
 probability_threshold=1 # 1 to use different probabilities tan 0.5 to decide on the class. At the moment it is >=0.2 for any other calss then AS
-
-SVMtype='Kernel'  #Kernel or Linear
-strategie='ovr' # or or crammer_singer tochoose for LinearSVM multiclass stragey
-
 WhichMix='perSession' #perSession or all  # determine how the data was scaled. PEr session or just per patient
-
+#--------------------
+N=100 # Estimators for the trees
+crit='gini' #gini or entropy method for trees 
+msl=5  #min_sample_leafe
+deciding_performance_measure='Kappa' #Kappa , F1_second_label, F1_third_label, F1_fourth_label
+       
 combs=[]
 bestAUCs=nan
 Subsets=list() 
@@ -112,11 +165,7 @@ if WhichMix not in Whichmix:
        sys.exit('Misspelling in WhichMix')         
      
 # CHOOSING WHICH FEATURE MATRIX IS USED
-if WhichMix=='perSession':
-       FeatureMatrix_each_patient=FeatureMatrix_each_patient_fromSession       
-elif WhichMix=='all':
-       FeatureMatrix_each_patient=FeatureMatrix_each_patient_all
-       
+
 """
 START 
 """      
@@ -125,20 +174,28 @@ els = [list(x) for x in itertools.combinations(lst, i)]
 combs.extend(els)  
 combs_short=[combs for combs in combs if len(combs) <= Ncombos] #due to computation time we stop with 5 Features per set.
 
-
+babies, AnnotMatrix_each_patient, FeatureMatrix_each_patient\
+              =Loading_data_perSession(dataset,selectedbabies,lst,ux,scaling,\
+                            LoosingAnnot5,LoosingAnnot6,LoosingAnnot6_2,direction6,plotting,Smoothing_short,Pack4,merge34,\
+                            Movingwindow,preaveraging,postaveraging,exceptNOF,onlyNOF,FEAT,\
+                            PolyTrans,ExpFactor,exceptNOpF,onlyNOpF,FEATp,RBFkernel)
+              
 """ 
 GRID SEARCH FOR C AND GAMMA
 """
 if preGridsearch:
     # For pregridsearch take all label
     # for final gridsearch use the labels you are investigating
-#
-    gridC=float64([1,4,10,100,1000])
-    gridY=float64([10,3,1,0.5,0.1,0.05,0.01,0.005,0.001,0.0005,0.0001])
+    if SVMtype=='Linear':
+           gridC=float64([1])#([1,4,10,100,1000])
+           gridY=float64([1])
+    elif SVMtype=='Kernel':
+           gridC=float64([1])#([1,4,10,100,1000])
+           gridY=float64([1])#([10,3,1,0.5,0.1,0.05,0.01,0.005,0.001,0.0005,0.0001])
     [c,gamma]=GridSearch_all(plotting_grid,gridC,gridY,lst,label,babies,AnnotMatrix_each_patient,FeatureMatrix_each_patient,classweight,\
-                                ChoosenKind,SamplingMeth,probability_threshold,SVMtype,strategie)
+                                ChoosenKind,SamplingMeth,probability_threshold,SVMtype,strategie,deciding_performance_measure)
     disp(c);disp(gamma)
-    sys.exit('Jan werth first gridsearch')
+#    sys.exit('Jan werth first gridsearch')
     
 """
 BRUTE FORCE
@@ -174,8 +231,8 @@ for V in range(len(babies)):
         Xfeat=[val[idx[sb],:] for sb, val in enumerate(Xfeat)]   #selecting the datapoints in label
         
         resultsF1_maco,resultsK,resultsF1_micro,resultsF1_weight,resultsF1_all \
-        =Classifier_routine_no_sampelWeight(Xfeat,y_each_patient,selected_babies,label,classweight,c,gamma,\
-                                            ChoosenKind,SamplingMeth,probability_threshold,SVMtype,strategie)
+        =SVM_routine_no_sampelWeight(Xfeat,y_each_patient,selected_babies,label,classweight,c,gamma,\
+                                            ChoosenKind,SamplingMeth,probability_threshold,SVMtype,strategie,deciding_performance_measure)
         collected_mean_auc.append(resultsK) # This collects the mean AUC of each itteration. As we want to know whcih combination is the best, we collect all mean AUCs and search for the maximum later
         print('BF Round: %i of:%i' %(Fc+1,len(combs_short)))    
            
@@ -213,8 +270,8 @@ for V in range(len(babies)):
             Xfeat=[val[idx[sb],:] for sb, val in enumerate(Xfeat)]   #choosing only the values which are taged with the used labels (AS=1 QS=2 ...)
         
             resultsF1_maco,resultsK,resultsF1_micro,resultsF1_weight,resultsF1_all \
-            =Classifier_routine_no_sampelWeight(Xfeat,y_each_patient,selected_babies,label,classweight,c,gamma,\
-                                                ChoosenKind,SamplingMeth,probability_threshold,SVMtype,strategie)
+            =SVM_routine_no_sampelWeight(Xfeat,y_each_patient,selected_babies,label,classweight,c,gamma,\
+                                                ChoosenKind,SamplingMeth,probability_threshold,SVMtype,strategie,deciding_performance_measure)
 
             collected_mean_auc_new.append(resultsK)
             
@@ -268,7 +325,7 @@ for V in range(len(babies)):
     
     resultsF1_macro,resultsK,resultsF1_micro,resultsF1_weight,resultsF1_all \
     =Validate_with_classifier(Xfeat_valid,y_each_patient_valid,selected_babies,selected_validation,label,classweight,c,gamma,\
-                                       ChoosenKind,SamplingMeth,probability_threshold,SVMtype,strategie)
+                                       ChoosenKind,SamplingMeth,probability_threshold,SVMtype,strategie,deciding_performance_measure)
        
 #    sys.exit('Jan werth 206')
 
@@ -304,19 +361,24 @@ Xfeat_final=[val[:,Common_Features] for sb, val in enumerate(FeatureMatrix_auswa
 Xfeat_final=[val[idx[sb],:] for sb, val in enumerate(Xfeat_final)]   #selecting the datapoints in label    
 
 
-if finalGridsearch:   
-    gridC=float64([1,2,4,10,100])
-    gridY=float64([3,1,0.5,0.1,0.05,0.01,0.005,0.001,0.0005,0.0001])
-    [c,gamma]=GridSearch_commonFeatures(plotting_grid,gridC,gridY,lst,label,Xfeat_final,y_each_patient,selected_babies,classweight,\
+if finalGridsearch:
+       if SVMtype=='Linear':
+              gridC=float64([1,4,10,100,1000])
+              gridY=float64([1])
+       elif SVMtype=='Kernel':
+              gridC=float64([1,4,10,100,1000])
+              gridY=float64([3,1,0.5,0.1,0.05,0.01,0.005,0.001,0.0005,0.0001])   
+              
+       [c,gamma]=GridSearch_commonFeatures(plotting_grid,gridC,gridY,lst,label,Xfeat_final,y_each_patient,selected_babies,classweight,\
                                               ChoosenKind,SamplingMeth,probability_threshold,SVMtype,strategie)
-    print('The final choosen C and gamma are: C: %.2f gamma: %.2f'%(c,gamma))
+       print('The final choosen C and gamma are: C: %.2f gamma: %.2f'%(c,gamma))
 #    sys.exit('Jan werth final Gridsearch')
 #    input("Press Enter to continue...")
 
 
 resultsF1_maco_test,resultsK_test,resultsF1_micro_test,resultsF1_weight_test,resultsF1_all_test \
-=Classifier_routine_no_sampelWeight(Xfeat,y_each_patient,selected_babies,label,classweight,c,gamma,\
-                                       ChoosenKind,SamplingMeth,probability_threshold,SVMtype,strategie)
+=SVM_routine_no_sampelWeight(Xfeat,y_each_patient,selected_babies,label,classweight,c,gamma,\
+                                       ChoosenKind,SamplingMeth,probability_threshold,SVMtype,strategie,deciding_performance_measure)
 
 """
 ENDING stuff
