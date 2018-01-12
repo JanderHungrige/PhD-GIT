@@ -209,21 +209,21 @@ def Loading_data_perSession(dataset,selectedbabies,lst,ux,scaling,\
                       FeatureMatrix_Session_each_patient[j]=FeatureMatrix_Session_each_patient[j].transpose() # transpose to datapoints,features
        # TRIMMING THEM IF SESSIONS ARE TO SHORT OR EMPTY               
 #              FeatureMatrix_Session_each_patient[1]=[];FeatureMatrix_Session_each_patient[5]=[]# just a test delete
-#              WelcheSindLeer=list()
-#              WelcheSindzuKurz=list()
-#              for j in range(len(Dateien)): 
-#                     if len(FeatureMatrix_Session_each_patient[j])==0:
-#                            WelcheSindLeer.append(j) #Just count how many Sessions do not have cECG values. If more than one different strategy is needed than the one below
-#                     if len(FeatureMatrix_Session_each_patient[j])!=0 and len(FeatureMatrix_Session_each_patient[j])<=2: # If a session is to short, remove it
-#                            WelcheSindzuKurz.append(j) #Just count how many Sessions do not have cECG values. If more than one different strategy is needed than the one below
-#                            
-#              if WelcheSindzuKurz:# deleting the ones that are too short in Annotation MAtrix. Apparently if there is no data(leer), then the Annotations are already shortened. Therefore only corretion for the once which are a bit to short
-#                     AnnotMatrix_each_patient=correcting_Annotations_length(K,WelcheSindzuKurz,ux,selectedbabies,AnnotMatrix_each_patient,FeatureMatrix_Session_each_patient)
-#                     WelcheSindLeer.extend(WelcheSindzuKurz)# delete the ones that are zero and the once that are too short
-#                     
-#              for index in sorted(WelcheSindLeer, reverse=True):
-#                     del FeatureMatrix_Session_each_patient[index]
-##              FeatureMatrix_Session_each_patient=[m for n, m in enumerate(FeatureMatrix_Session_each_patient) if n not in WelcheSindLeer] #remove empty session
+              WelcheSindLeer=list()
+              WelcheSindzuKurz=list()
+              for j in range(len(Dateien)): 
+                     if len(FeatureMatrix_Session_each_patient[j])==0:
+                            WelcheSindLeer.append(j) #Just count how many Sessions do not have cECG values. If more than one different strategy is needed than the one below
+                     if len(FeatureMatrix_Session_each_patient[j])!=0 and len(FeatureMatrix_Session_each_patient[j])<=2: # If a session is to short, remove it
+                            WelcheSindzuKurz.append(j) #Just count how many Sessions do not have cECG values. If more than one different strategy is needed than the one below
+                            
+              if WelcheSindzuKurz:# deleting the ones that are too short in Annotation MAtrix. Apparently if there is no data(leer), then the Annotations are already shortened. Therefore only corretion for the once which are a bit to short
+                     AnnotMatrix_each_patient=correcting_Annotations_length(K,WelcheSindzuKurz,ux,selectedbabies,AnnotMatrix_each_patient,FeatureMatrix_Session_each_patient)
+                     WelcheSindLeer.extend(WelcheSindzuKurz)# delete the ones that are zero and the once that are too short
+                     
+              for index in sorted(WelcheSindLeer, reverse=True):
+                     del FeatureMatrix_Session_each_patient[index]
+#              FeatureMatrix_Session_each_patient=[m for n, m in enumerate(FeatureMatrix_Session_each_patient) if n not in WelcheSindLeer] #remove empty session
 
 
        #Moving average
@@ -338,7 +338,10 @@ def Feature_names():
                       26:"VLF",
                       27:"SampEN",
                       28:"QSE",
-                      29:"SEAUC"
+                      29:"SEAUC",
+                      30:"pDEC",
+                      31:"SDDEC",
+                      32:"LZNN"
                       }                      
        features_indx = dict((y,x) for x,y in features_dict.items())       
        return Class_dict, features_dict, features_indx

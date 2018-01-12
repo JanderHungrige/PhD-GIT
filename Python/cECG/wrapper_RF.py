@@ -66,14 +66,15 @@ Loading data declaration
 class var():
        dataset='cECG'  # Either ECG or cECG and later maybe MMC or InnerSense
        #***************
-       selectedbabies =[2,3,5,7]  #0-8 ('4','5','6','7','9','10','11','12','13')
+       selectedbabies =[0,2,3,5,7]  #0-8 ('4','5','6','7','9','10','11','12','13')
+#       selectedbabies =[0,1,2,3,4,5,6,7,8]  #0-8 ('4','5','6','7','9','10','11','12','13')
        #---------------------------
        # Feature list
-       lst = [0,1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16,17,18,19,20,21,22,23,24,25,26,27,28,29]
+       lst = [0,1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16,17,18,19,20,21,22,23,24,25,26,27,28,29]#,30,31,32]
        #lst_old=[3,4,5,6,7,8,9,10,11,14,15,16,17,18,19,20,21,22,23,24,25,26] # From first paper to compare with new features
        #lst=lst_old
        #---------------------------
-       label=[1,2,3,4] # 1=AS 2=QS 3=Wake 4=Care-taking 5=NA 6= transition
+       label=[1,2,4] # 1=AS 2=QS 3=Wake 4=Care-taking 5=NA 6= transition
        #--------------------------
        classweight=1 # If classweights should be automatically ('balanced') determined and used for trainnig use: 0; IF they should be calculated by own function use 1
        saving=0
@@ -99,12 +100,12 @@ class var():
        #----------------------------
        PolyTrans=0#use polinominal transformation on the Features specified in FEATp
        ExpFactor=2# which degree of polinomonal (2)
-       exceptNOpF= 0#Which Number of Features (NOpF) should be used with polynominal fit?  all =0; only some or all except some defined in FEATp
+       exceptNOpF=1#Which Number of Features (NOpF) should be used with polynominal fit?  all =0; only some or all except some defined in FEATp
        onlyNOpF=1 # [0,1,2,27,28,29]
        FEATp=[0,3,4,5]
        RBFkernel=1
        #--------------------------
-       Used_classifier='GB' #RF=random forest ; ERF= extreme random forest; TR= Decission tree; GB= Gradient boosting
+       Used_classifier='RF' #RF=random forest ; ERF= extreme random forest; TR= Decission tree; GB= Gradient boosting
        drawing=0 # draw a the tree structure
        SVMtype='Kernel'  #Kernel or Linear
        Kernel='RBF'#'polynomial'   or ' RBF'  
@@ -122,9 +123,11 @@ class var():
        WhichMix='perSession' #perSession or all  # determine how the data was scaled. PEr session or just per patient
        #--------------------
        N=100 # Estimators for the trees
+       LossF="deviance" # "deviance" or "exponential" for GB
        crit='gini' #gini or entropy method for trees 
        msl=5  #min_sample_leafe
-       deciding_performance_measure='Kappa' #Kappa , F1_second_label, F1_third_label, F1_fourth_label
+       SS=2; #min_samples_split
+       deciding_performance_measure='Kappa' #Kappa , F1_second_label, F1_third_label, F1_fourth_labelí
        
 """
 #*********************************************************************************************************
@@ -145,8 +148,10 @@ var_CT.onlyNOpF=1 # [0,1,2,27,28,29]
 var_CT.FEATp=[1,2,27,28]
 #--------------------
 var_CT.N=50 # Estimators for the trees
+var_CT.LossF="deviance" # "deviance" or "exponential" for GB
 var_CT.crit='entropy' #gini or entropy
 var_CT.msl=3  #min_sample_leafe
+var_CT.SS=2 #min_samples_split
 var_CT.deciding_performance_measure='Kappa' #Kappa , F1_second_label, F1_third_label, F1_fourth_label
 var_CT.Used_classifier='RF' #RF=random forest ; ERF= extreme random forest; TR= Decission tree; GB= Gradient boosting
 
@@ -168,8 +173,9 @@ var_IS.onlyNOpF=1 # [0,1,2,27,28,29]
 var_IS.FEATp=[0,1,2,27,28]
 #--------------------
 var_IS.N=100 # Estimators for the trees
+var_IS.LossF="deviance" # "deviance" or "exponential" for GB
 var_IS.crit='gini' #gini or entropy
-var_IS.msl=5  #min_sample_leafe
+var_IS.msl=4  #min_sample_leafe
 var_IS.deciding_performance_measure='Kappa' #Kappa , F1_second_label (label[1]), F1_third_label (label[2]), F1_fourth_label (label[3])
 var_IS.Used_classifier='ERF' #RF=random forest ; ERF= extreme random forest; TR= Decission tree; GB= Gradient boosting
 
@@ -222,7 +228,7 @@ def loadingdata_LOOCV(whichMix,choosenlabel):
        RES_Kappa_Performance,RES_F1_mall\
        =leave_one_out_cross_validation(babies,AnnotMatrix_each_patient,FeatureMatrix,\
          var_load.label,var_load.classweight, var_load.Used_classifier, var_load.drawing, var_load.lst,var.ChoosenKind,var_load.SamplingMeth,var_load.probability_threshold,var_load.plotting,var_load.compare,var_load.saving,\
-         var_load.N,var_load.crit,var_load.msl,var_load.deciding_performance_measure)
+         var_load.N,var_load.crit,var_load.msl,var_load.SS,var_load.LossF,var_load.deciding_performance_measure)
 
        RES_F1_all_mean=array(mean(RES_F1_all,0))       
               
@@ -244,30 +250,12 @@ if 2 in var.label:
        =loadingdata_LOOCV(var.WhichMix,'QS')       
        
        classpredictions=RES_classpredictions_QS[:]
-"""
-RUN 2  CT
-"""
 
-"""
-RUN 3  IS
-"""
-if 6 in var.label:
-       y_each_patient,RES_classpredictions_IS,probabilities,RES_Fimportance_IS,_,\
-       RES_Kappa_IS,_,_,RES_F1_all_IS,_,_,_,RES_F1_all_IS_mean\
-       =loadingdata_LOOCV(var.WhichMix,'IS')   
-       
-       #Optimize prediction by taking predictions for specific classes from differnt classifiers
-       #The base predicitions are the one from QS classifier. Over that each 4(care taking) is decided/changed by the classifer results for CT
-#       classpredictions=RES_classpredictions_QS[:]
-       for o in range(len(RES_classpredictions_IS)):
-              for p in range(len(RES_classpredictions_IS[o])):  
-       #              ind=classpredictionsCT[o]==4
-                     if RES_classpredictions_IS[o][p]==6: 
-                            classpredictions[o][p]=6
-                     elif classpredictions[o][p]==6 and RES_classpredictions_IS[o][p]!=6: # CT determines if 4 or not
-                            classpredictions[o][p]=RES_classpredictions_IS[o][p]
+
                     
-                            
+"""
+RUN 3 CT
+"""
 if 4 in var.label:
 
        y_each_patient,RES_classpredictions_CT,probabilities,RES_Fimportance_CT,_,\
@@ -286,6 +274,25 @@ if 4 in var.label:
                             classpredictions[o][p]=RES_classpredictions_CT[o][p]
                                               
                             
+
+"""
+RUN 2  IS
+"""
+if 6 in var.label:
+       y_each_patient,RES_classpredictions_IS,probabilities,RES_Fimportance_IS,_,\
+       RES_Kappa_IS,_,_,RES_F1_all_IS,_,_,_,RES_F1_all_IS_mean\
+       =loadingdata_LOOCV(var.WhichMix,'IS')   
+       
+       #Optimize prediction by taking predictions for specific classes from differnt classifiers
+       #The base predicitions are the one from QS classifier. Over that each 4(care taking) is decided/changed by the classifer results for CT
+#       classpredictions=RES_classpredictions_QS[:]
+       for o in range(len(RES_classpredictions_IS)):
+              for p in range(len(RES_classpredictions_IS[o])):  
+       #              ind=classpredictionsCT[o]==4
+                     if RES_classpredictions_IS[o][p]==6: 
+                            classpredictions[o][p]=6
+                     elif classpredictions[o][p]==6 and RES_classpredictions_IS[o][p]!=6: # CT determines if 4 or not
+                            classpredictions[o][p]=RES_classpredictions_IS[o][p]                            
 """ 
 Overall perfomrance analysis
 """

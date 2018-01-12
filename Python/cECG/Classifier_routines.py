@@ -312,8 +312,8 @@ def Validate_with_classifier(Xfeat,y_each_patient,selected_babies,selected_test,
 Random Forrest     
 '''   
 def Classifier_random_forest(Xfeat_test, Xfeat,y_each_patient_test, y_each_patient, selected_babies, \
-                              selected_test, label,classweight, Used_classifier, drawing, lst, ChoosenKind,\
-                              SamplingMeth,probability_threshold,N,crit,msl,deciding_performance_measure):
+                              selected_test, label, classweight, Used_classifier, drawing, lst, ChoosenKind,\
+                              SamplingMeth,probability_threshold,N,crit,msl,SS,LossF,deciding_performance_measure):
        
 
 #### CREATING THE sampleweight FOR SELECTED BABIES  
@@ -364,14 +364,14 @@ def Classifier_random_forest(Xfeat_test, Xfeat,y_each_patient_test, y_each_patie
     if Used_classifier=='TR':
         if (classweight==1) and CW==1: 
              clf = tree.DecisionTreeClassifier(criterion=crit, splitter="best", max_depth=None,\
-                                               min_samples_split=2, min_samples_leaf=msl, \
+                                               min_samples_split=SS, min_samples_leaf=msl, \
                                                min_weight_fraction_leaf=0.0, max_features=None, \
                                                random_state=42, max_leaf_nodes=None, min_impurity_decrease=0.0,\
                                                min_impurity_split=None, class_weight=cWdict, presort=False)
                            
         else:
              clf = tree.DecisionTreeClassifier(criterion=crit, splitter="best", max_depth=None,\
-                                               min_samples_split=2, min_samples_leaf=msl, \
+                                               min_samples_split=SS, min_samples_leaf=msl, \
                                                min_weight_fraction_leaf=0.0, max_features=None, \
                                                random_state=42, max_leaf_nodes=None, min_impurity_decrease=0.0,\
                                                min_impurity_split=None,  presort=False)   
@@ -380,37 +380,37 @@ def Classifier_random_forest(Xfeat_test, Xfeat,y_each_patient_test, y_each_patie
     if Used_classifier=='RF':
         if (classweight==1) and CW==1: 
              clf = RandomForestClassifier(n_estimators=N, criterion=crit, max_depth=None, \
-                                          min_samples_split=2, min_samples_leaf=msl, min_weight_fraction_leaf=0.0,\
+                                          min_samples_split=SS, min_samples_leaf=msl, min_weight_fraction_leaf=0.0,\
                                           max_features="auto", max_leaf_nodes=None, min_impurity_decrease=0.0,\
-                                          min_impurity_split=None, bootstrap=True, oob_score=False,\
+                                          bootstrap=True, oob_score=False,\
                                           n_jobs=1, random_state=42, verbose=0, warm_start=False,\
                                           class_weight=cWdict)
                            
         else:
              clf = RandomForestClassifier(n_estimators=N, criterion=crit, max_depth=None, \
-                                          min_samples_split=2, min_samples_leaf=msl, min_weight_fraction_leaf=0.0,\
+                                          min_samples_split=SS, min_samples_leaf=msl, min_weight_fraction_leaf=0.0,\
                                           max_features="auto", max_leaf_nodes=None, min_impurity_decrease=0.0,\
-                                          min_impurity_split=None, bootstrap=True, oob_score=False,\
+                                          bootstrap=True, oob_score=False,\
                                           n_jobs=1, random_state=42, verbose=0, warm_start=False,\
                                           )
     elif Used_classifier=='ERF':         
         if (classweight==1) and CW==1: 
              clf = ExtraTreesClassifier(n_estimators=N, criterion=crit, max_depth=None,\
-                                          min_samples_split=2, min_samples_leaf=msl, \
+                                          min_samples_split=SS, min_samples_leaf=msl, \
                                           max_features="auto", max_leaf_nodes=None, min_impurity_decrease=0.0,\
-                                          min_impurity_split=None, bootstrap=True, oob_score=False,\
+                                          bootstrap=True, oob_score=False,\
                                           n_jobs=1, random_state=42, verbose=0, warm_start=False,\
                                           class_weight=cWdict)
         else:
              clf = ExtraTreesClassifier(n_estimators=N, criterion=crit, max_depth=None,\
-                                          min_samples_split=2, min_samples_leaf=msl, min_weight_fraction_leaf=0.0,\
+                                          min_samples_split=SS, min_samples_leaf=msl, min_weight_fraction_leaf=0.0,\
                                           max_features="auto", max_leaf_nodes=None, min_impurity_decrease=0.0,\
-                                          min_impurity_split=None, bootstrap=True, oob_score=False,\
+                                          bootstrap=True, oob_score=False,\
                                           n_jobs=1, random_state=42, verbose=0, warm_start=False,\
                                           )
     elif Used_classifier=='GB':
-      clf = GradientBoostingClassifier(loss="deviance", learning_rate=0.1, n_estimators=N, subsample=1, \
-                          criterion='friedman_mse', min_samples_split=2, min_samples_leaf=1, min_weight_fraction_leaf=0.0,\
+      clf = GradientBoostingClassifier(loss=LossF, learning_rate=0.01, n_estimators=N, subsample=1, \
+                          criterion='friedman_mse', min_samples_split=SS, min_samples_leaf=1, min_weight_fraction_leaf=0.0,\
                           max_depth=30, min_impurity_decrease=0.0, min_impurity_split=None, init=None, \
                           random_state=42, max_features=None, verbose=0, max_leaf_nodes=None, warm_start=False, presort='auto')
         
