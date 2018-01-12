@@ -187,7 +187,7 @@ def Loading_data_all(dataset,selectedbabies,lst,ux,scaling,\
        #%%
        
 def Loading_data_perSession(dataset,selectedbabies,lst,ux,scaling,\
-                     LoosingAnnot5,LoosingAnnot6,LoosingAnnot6_2,direction6,plotting,Smoothing_short,Pack4,\
+                     LoosingAnnot5,LoosingAnnot6,LoosingAnnot6_2,direction6,plotting,Smoothing_short,Pack4,merge34,\
                      Movingwindow,preaveraging,postaveraging,exceptNOF,onlyNOF,FEAT,\
                      PolyTrans,ExpFactor,exceptNOpF,onlyNOpF,FEATp):    
        
@@ -308,7 +308,7 @@ def Loading_data_perSession(dataset,selectedbabies,lst,ux,scaling,\
                             FeatureMatrix_each_patient_fromSession[K][:,F]=\
                             np.convolve(FeatureMatrix_each_patient_fromSession[K][:,F], np.ones((Movingwindow,))/Movingwindow, mode='same')                
                      
-       AnnotMatrix_each_patient=AnnotationChanger(AnnotMatrix_each_patient,LoosingAnnot5,LoosingAnnot6,LoosingAnnot6_2,Smoothing_short,Pack4,direction6)
+       AnnotMatrix_each_patient=AnnotationChanger(AnnotMatrix_each_patient,LoosingAnnot5,LoosingAnnot6,LoosingAnnot6_2,Smoothing_short,Pack4,direction6,merge34)
                
        ##Non-linear dimensionality reduction through Isometric Mapping                     
        #for K in range(len(Neonate)):                                           

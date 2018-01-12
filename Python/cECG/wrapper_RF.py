@@ -66,7 +66,9 @@ Loading data declaration
 
 dataset='ECG'  # Either ECG or cECG and later maybe MMC or InnerSense
 #***************
-selectedbabies =[0,1,3,5,6,7] #0-8 ('4','5','6','7','9','10','11','12','13')
+selectedbabies =[0,2,3,5,7] #0-8 ('4','5','6','7','9','10','11','12','13')
+label=[1,2,3,4] # 1=AS 2=QS 3=Wake 4=Care-taking 5=NA 6= transition
+
 #---------------------------
 # Feature list
 lst = [0,1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16,17,18,19,20,21,22,23,24,25,26,27,28,29]
@@ -82,6 +84,10 @@ LoosingAnnot6_2=0 # as above, but chooses always 2 when 6 was lead into with 1
 direction6=0 # if State 6 should be replaced with the state before, use =1; odtherwise with after, use =0. Annotators used before.
 Smoothing_short=0 # # short part of any annotation are smoothed out. 
 Pack4=0 # State 4 is often split in multible short parts. Merge them together as thebaby does not calm downin 1 min
+merge34=1
+if merge34 and 3 in label:
+              label.remove(3)
+
 #---------------------------
 Movingwindow=10 # WIndow size for moving average
 preaveraging=0
@@ -103,7 +109,6 @@ Declaring variables for the wrapper
 """
 #=---------------------------
 # SELECTING THE LABELS FOR SELECTED BABIES
-label=[1,2,4] # 1=AS 2=QS 3=Wake 4=Care-taking 5=NA 6= transition
 #--------------------------
 # SET INSTRUCTIONS
 classweight=1 # If classweights should be automatically ('balanced') determined and used for trainnig use: 0; IF they should be calculated by own function use 1
@@ -147,14 +152,14 @@ def loadingdata(whichMix):
        if WhichMix=='perSession':            
               babies, AnnotMatrix_each_patient,FeatureMatrix\
               =Loading_data_perSession(dataset, selectedbabies, lst,ux, scaling,\
-                            LoosingAnnot5, LoosingAnnot6, LoosingAnnot6_2, direction6, plotting, Smoothing_short, Pack4,\
+                            LoosingAnnot5, LoosingAnnot6, LoosingAnnot6_2, direction6, plotting, Smoothing_short, Pack4, merge34,\
                             Movingwindow, preaveraging, postaveraging, exceptNOF, onlyNOF, FEAT,\
                             PolyTrans, ExpFactor, exceptNOpF, onlyNOpF, FEATp)       
               
        elif WhichMix=='all':              
               babies, AnnotMatrix_each_patient, FeatureMatrix\
               =Loading_data_all(dataset,selectedbabies,lst,ux,scaling,\
-                            LoosingAnnot5,LoosingAnnot6,LoosingAnnot6_2,direction6,plotting,Smoothing_short,Pack4,\
+                            LoosingAnnot5,LoosingAnnot6,LoosingAnnot6_2,direction6,plotting,Smoothing_short,Pack4,merge34,\
                             Movingwindow,preaveraging,postaveraging,exceptNOF,onlyNOF,FEAT,\
                             PolyTrans,ExpFactor,exceptNOpF,onlyNOpF,FEATp)
               
@@ -171,7 +176,7 @@ y_each_patient,\
 RES_classpredictions_QS,\
 RES_Fimportance_QS,\
 RES_F1_macro_QS,\
-RES_KAPPA_QS,\
+RES_Kappa_QS,\
 RES_F1_micro_QS,\
 RES_F1_weigth_QS,\
 RES_F1_all_QS,\
@@ -215,7 +220,7 @@ FEATp=[0,3,4,5]
 N=50 # Estimators for the trees
 crit='entropy' #gini or entropy
 msl=3  #min_sample_leafe
-deciding_performance_measure='F1_third_label' #Kappa , F1_second_label, F1_third_label, F1_fourth_label
+deciding_performance_measure='Kappa' #Kappa , F1_second_label, F1_third_label, F1_fourth_label
 
 
 
@@ -228,7 +233,7 @@ y_each_patient,\
 RES_classpredictions_CT,\
 RES_Fimportance_CT,\
 RES_F1_macro_CT,\
-RES_KAPPA_CT,\
+RES_Kappa_CT,\
 RES_F1_micro_CT,\
 RES_F1_weigth_CT,\
 RES_F1_all_CT,\
@@ -259,13 +264,13 @@ tmp_pred=hstack(classpredictions)
 
 #Performance of optimized predictions 
 RES1_F1_all=zeros(shape=(len(babies),len(label)))
-RES1_KAPPA=list()
+RES1_Kappa=list()
 
 for K in range(len(babies)):
-       RES1_KAPPA.append(cohen_kappa_score(y_each_patient[K].ravel(),classpredictions[K],labels=label)) # Find the threshold where Kapaa gets max
+       RES1_Kappa.append(cohen_kappa_score(y_each_patient[K].ravel(),classpredictions[K],labels=label)) # Find the threshold where Kapaa gets max
        RES1_F1_all[K]=f1_score(y_each_patient[K].ravel(), classpredictions[K],labels=label, average=None)#, pos_label=None)
        
-RES1_KAPPA.append(mean(RES1_KAPPA))
+RES1_Kappa.append(mean(RES1_Kappa))
 RES1_F1_all_mean=array(mean(RES1_F1_all,0))    
 RES1_KAPPA_overall=cohen_kappa_score(tmp_orig.ravel(),tmp_pred.ravel(),labels=label)
 

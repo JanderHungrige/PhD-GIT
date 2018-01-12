@@ -25,6 +25,9 @@ def cmplx_Oversampling(X,Y,ChoosenKind,SamplingMeth,label):
            X_resampled, y_resampled = SMOTE(kind=Kindtype[ChoosenKind],random_state=42,ratio=Verhaeltniss).fit_sample(X, Y)
     elif SamplingMeth=='ADASYN': 
            X_resampled, y_resampled = ADASYN(random_state=42,ratio=Verhaeltniss).fit_sample(X, Y)
+    elif SamplingMeth=='NONE':
+           X_resampled=X
+           y_resampled=Y             
     else:
            disp:'Choose imbalance_learn Methode. ADASYN or SMOTE'
            return
