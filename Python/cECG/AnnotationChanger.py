@@ -4,7 +4,7 @@ Created on Wed Nov 22 09:11:21 2017
 
 @author: 310122653
 """
-def AnnotationChanger(AnnotMatrix_each_patient,LoosingAnnot5,LoosingAnnot6,LoosingAnnot6_2,Smoothing_short,Pack4, direction6):
+def AnnotationChanger(AnnotMatrix_each_patient,LoosingAnnot5,LoosingAnnot6,LoosingAnnot6_2,Smoothing_short,Pack4,direction6,merge34):
 
 #%% This part changes all annotations 5 (Not annotatable) into the value of the surrounding state. 
 # The rules are: 
@@ -108,4 +108,12 @@ def AnnotationChanger(AnnotMatrix_each_patient,LoosingAnnot5,LoosingAnnot6,Loosi
                      for M in range(len(AnnotMatrix_each_patient[l])): #stepping 5 min 10*30s
                            AAA=list(AnnotMatrix_each_patient[l]).index(4)
                            
-       return  AnnotMatrix_each_patient                   
+        
+
+       if merge34:
+              for l in range(len(AnnotMatrix_each_patient)):
+                     for M in range(1,len(AnnotMatrix_each_patient[l])):# 1 as we want to compare M and M-1, so rnge should start at 1 and not 0
+                            if int(AnnotMatrix_each_patient[l][M])==3:
+                                   AnnotMatrix_each_patient[l][M]=4
+                     
+       return  AnnotMatrix_each_patient        

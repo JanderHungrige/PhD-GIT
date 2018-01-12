@@ -66,14 +66,14 @@ Loading data declaration
 class var():
        dataset='cECG'  # Either ECG or cECG and later maybe MMC or InnerSense
        #***************
-       selectedbabies =[2,3,5,6,7,8]  #0-8 ('4','5','6','7','9','10','11','12','13')
+       selectedbabies =[2,3,5,7]  #0-8 ('4','5','6','7','9','10','11','12','13')
        #---------------------------
        # Feature list
        lst = [0,1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16,17,18,19,20,21,22,23,24,25,26,27,28,29]
        #lst_old=[3,4,5,6,7,8,9,10,11,14,15,16,17,18,19,20,21,22,23,24,25,26] # From first paper to compare with new features
        #lst=lst_old
        #---------------------------
-       label=[1,2,6] # 1=AS 2=QS 3=Wake 4=Care-taking 5=NA 6= transition
+       label=[1,2,3,4] # 1=AS 2=QS 3=Wake 4=Care-taking 5=NA 6= transition
        #--------------------------
        classweight=1 # If classweights should be automatically ('balanced') determined and used for trainnig use: 0; IF they should be calculated by own function use 1
        saving=0
