@@ -20,61 +20,17 @@ from sklearn.preprocessing import StandardScaler
 from sklearn.manifold import Isomap
 from AnnotationChanger import AnnotationChanger
 from sklearn.preprocessing import PolynomialFeatures
-
+from sklearn.gaussian_process.kernels import RBF
+from sklearn.kernel_approximation import RBFSampler
 
 
 
 
 def Loading_data_all(dataset,selectedbabies,lst,ux,scaling,\
-                     LoosingAnnot5,LoosingAnnot6,LoosingAnnot6_2,direction6,plotting,Smoothing_short,Pack4,\
+                     LoosingAnnot5,LoosingAnnot6,LoosingAnnot6_2,direction6,plotting,Smoothing_short,Pack4,merge34,\
                      Movingwindow,preaveraging,postaveraging,exceptNOF,onlyNOF,FEAT,\
-                     PolyTrans,ExpFactor,exceptNOpF,onlyNOpF,FEATp):
-       ##***************
-       #dataset='ECG'  # Either ECG or cECG and later maybe MMC or InnerSense
-       ##***************
-       #selectedbabies =[0,1,3,5,6,7] #0-8 ('4','5','6','7','9','10','11','12','13')
-       ##selectedbabies =[0,1,2,3,4,5,6,7,8] #0-8 ('4','5','6','7','9','10','11','12','13')
-       ##---------------------------
-       #
-       ## Feature list
-       #lst = [0,1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16,17,18,19,20,21,22,23,24,25,26,27,28,29]
-       ##lst_old=[3,4,5,6,7,8,9,10,11,14,15,16,17,18,19,20,21,22,23,24,25,26] # From first paper to compare with new features
-       ##lst=lst_old
-       ##lst = [0,2,3,4,5,6,7,8,9,10,11,12,14,15,16,17,18,19,20,21,22,23,24,25,26,29]
-       ##---------------------------
-       #
-       #ux=0 # if using this on Linux cluster use 1 to change adresses
-       #scaling='Z' # Scaling Z or MM 
-       ##---------------------------
-       #
-       #LoosingAnnot5= 0# exchange state 5 if inbetween another state with this state (also only if length <= x)
-       #LoosingAnnot6=0  #Exchange state 6 with the following or previouse state (depending on direction)
-       #LoosingAnnot6_2=0 # as above, but chooses always 2 when 6 was lead into with 1
-       #direction6=0 # if State 6 should be replaced with the state before, use =1; odtherwise with after, use =0. Annotators used before.
-       #plotting=0 #plotting annotations
-       #Smoothing_short=0 # # short part of any annotation are smoothed out. 
-       #Pack4=0 # State 4 is often split in multible short parts. Merge them together as thebaby does not calm downin 1 min
-       ##---------------------------
-       #
-       #Movingwindow=7 # WIndow size for moving average
-       #preaveraging=0
-       #postaveraging=1
-       #exceptNOF=1 #Which Number of Features (NOF) should be used with moving average?  all =oth tzero; only some or all except some defined in FEAT
-       #onlyNOF=0 # [0,1,2,27,28,29]
-       #FEAT=[0,1,2]
-       ##FEAT=[1,2,27,28] # FRO CT
-       ##----------------------------
-       #
-       #PolyTrans=0#use polinominal transformation on the Features specified in FEATp
-       #ExpFactor=2# which degree of polinomonal (2)
-       #exceptNOpF= 0#Which Number of Features (NOpF) should be used with polynominal fit?  all =0; only some or all except some defined in FEATp
-       #onlyNOpF=1 # [0,1,2,27,28,29]
-       ##FEATp=[1,2,27,28] # FRO CT
-       #FEATp=[0,3,4,5]
-       ##=---------------------------
-       #
-       #RBFkernel=0
-       
+                     PolyTrans,ExpFactor,exceptNOpF,onlyNOpF,FEATp,RBFkernel):
+
        """
        START *************************************************************************
        """
@@ -163,6 +119,11 @@ def Loading_data_all(dataset,selectedbabies,lst,ux,scaling,\
                                    if all(dublicate_col)==True:
                                           Cindex=np.append(Cindex,h)                            
                      FeatureMatrix_each_patient_all[K]=np.delete(FeatureMatrix_each_patient_all[K],Cindex,1)# delet all the doublicate features columns   
+              
+              if RBFkernel:
+                     rbf_feature = RBFSampler(gamma=10, random_state=42)
+                     FeatureMatrix_each_patient_all[K] = rbf_feature.fit_transform(FeatureMatrix_each_patient_all[K])
+                            
                      
               if postaveraging:             
                      NOF=np.arange(0,(np.size(FeatureMatrix_each_patient_all[K],1))) # create range from 0-29 (lenth of features)
@@ -175,7 +136,7 @@ def Loading_data_all(dataset,selectedbabies,lst,ux,scaling,\
                             np.convolve(FeatureMatrix_each_patient_all[K][:,F], np.ones((Movingwindow,))/Movingwindow, mode='same')                
                                           
 
-       AnnotMatrix_each_patient=AnnotationChanger(AnnotMatrix_each_patient,LoosingAnnot5,LoosingAnnot6,LoosingAnnot6_2,Smoothing_short,Pack4,direction6)
+       AnnotMatrix_each_patient=AnnotationChanger(AnnotMatrix_each_patient,LoosingAnnot5,LoosingAnnot6,LoosingAnnot6_2,Smoothing_short,Pack4,direction6,merge34)
 
                      
        return babies, AnnotMatrix_each_patient, FeatureMatrix_each_patient_all
@@ -189,7 +150,7 @@ def Loading_data_all(dataset,selectedbabies,lst,ux,scaling,\
 def Loading_data_perSession(dataset,selectedbabies,lst,ux,scaling,\
                      LoosingAnnot5,LoosingAnnot6,LoosingAnnot6_2,direction6,plotting,Smoothing_short,Pack4,merge34,\
                      Movingwindow,preaveraging,postaveraging,exceptNOF,onlyNOF,FEAT,\
-                     PolyTrans,ExpFactor,exceptNOpF,onlyNOpF,FEATp):    
+                     PolyTrans,ExpFactor,exceptNOpF,onlyNOpF,FEATp,RBFkernel):    
        
        """
        Creating Feature Matrix per session
@@ -232,16 +193,12 @@ def Loading_data_perSession(dataset,selectedbabies,lst,ux,scaling,\
        AnnotMatrix_each_patient=Loading_Annotations(dataset,selectedbabies,ux,plotting) # loading Annotations
        
        for K in range(len(Neonate)):      
-       #       SessionFileList=[]
               Dateien=glob.glob(Sessionfolder +'FeatureMatrix_'+Neonate[K]+ '_**')
-       #       SessionFileList=[None]*(len(Neonate))
               FeatureMatrix_Session_each_patient=[None]*len(Dateien)
-       
-       #       FeatureMatrix_each_patient_Session=[0]*len(Neonate)
-       #       AnnotMatrix_each_patient_Session=[0]*len(Neonate)
+
        
        # IMPORTING *.MAT FILES
-              for j in range(len(Dateien)): # j=0 Features  j=1 Annotations
+              for j in range(len(Dateien)): 
                       sio.absolute_import   
                       matlabfile=sio.loadmat(r'{}'.format(Dateien[j])) 
            
@@ -250,8 +207,25 @@ def Loading_data_perSession(dataset,selectedbabies,lst,ux,scaling,\
            #NANs can be in as there are only NaNs with NaN annotations. Nan al label is not used
                       FeatureMatrix_Session_each_patient[j]=matlabfile.get('FeatureMatrix') 
                       FeatureMatrix_Session_each_patient[j]=FeatureMatrix_Session_each_patient[j].transpose() # transpose to datapoints,features
-                                     
-                      
+       # TRIMMING THEM IF SESSIONS ARE TO SHORT OR EMPTY               
+#              FeatureMatrix_Session_each_patient[1]=[];FeatureMatrix_Session_each_patient[5]=[]# just a test delete
+              WelcheSindLeer=list()
+              WelcheSindzuKurz=list()
+              for j in range(len(Dateien)): 
+                     if len(FeatureMatrix_Session_each_patient[j])==0:
+                            WelcheSindLeer.append(j) #Just count how many Sessions do not have cECG values. If more than one different strategy is needed than the one below
+                     if len(FeatureMatrix_Session_each_patient[j])!=0 and len(FeatureMatrix_Session_each_patient[j])<=2: # If a session is to short, remove it
+                            WelcheSindzuKurz.append(j) #Just count how many Sessions do not have cECG values. If more than one different strategy is needed than the one below
+                            
+              if WelcheSindzuKurz:# deleting the ones that are too short in Annotation MAtrix. Apparently if there is no data(leer), then the Annotations are already shortened. Therefore only corretion for the once which are a bit to short
+                     AnnotMatrix_each_patient=correcting_Annotations_length(K,WelcheSindzuKurz,ux,selectedbabies,AnnotMatrix_each_patient,FeatureMatrix_Session_each_patient)
+                     WelcheSindLeer.extend(WelcheSindzuKurz)# delete the ones that are zero and the once that are too short
+                     
+              for index in sorted(WelcheSindLeer, reverse=True):
+                     del FeatureMatrix_Session_each_patient[index]
+#              FeatureMatrix_Session_each_patient=[m for n, m in enumerate(FeatureMatrix_Session_each_patient) if n not in WelcheSindLeer] #remove empty session
+
+
        #Moving average
        # We use a moving average as the annotations where done on video observations. This are never aprubt observations, therefore we smoothen out the data a bit to come closer to the annotation behaviour
               if preaveraging:
@@ -297,7 +271,10 @@ def Loading_data_perSession(dataset,selectedbabies,lst,ux,scaling,\
                                           Cindex=np.append(Cindex,h)                            
                      FeatureMatrix_each_patient_fromSession[K]=np.delete(FeatureMatrix_each_patient_fromSession[K],Cindex,1)# delet all the doublicate features columns   
        #              lst=range(len(FeatureMatrix_each_patient_fromSession[]))
-                     
+              if RBFkernel:
+                     rbf_feature = RBFSampler(gamma=10, random_state=42)
+                     FeatureMatrix_each_patient_fromSession[K] = rbf_feature.fit_transform(FeatureMatrix_each_patient_fromSession[K])
+                                          
               if postaveraging:             
                      NOF=np.arange(0,(np.size(FeatureMatrix_each_patient_fromSession[K],1))) # create range from 0-29 (lenth of features)
                      if exceptNOF:
@@ -361,7 +338,10 @@ def Feature_names():
                       26:"VLF",
                       27:"SampEN",
                       28:"QSE",
-                      29:"SEAUC"
+                      29:"SEAUC",
+                      30:"pDEC",
+                      31:"SDDEC",
+                      32:"LZNN"
                       }                      
        features_indx = dict((y,x) for x,y in features_dict.items())       
        return Class_dict, features_dict, features_indx
@@ -407,4 +387,81 @@ def Loading_Annotations(dataset,selectedbabies,ux,plotting):
 #                        plt.title([k])
                         
        return AnnotMatrix_each_patient
+       
+#%%
+def correcting_Annotations_missing(K,WelcheSindLeer,ux,selectedbabies,AnnotMatrix_each_patient):
+# This function is needed to load the ECG if the cECG Is loaded to compare the length of missing cECG value. The missing length can then be deleted from the annotations      
+       if ux:
+              Sessionfolder=('/home/310122653/Pyhton_Folder/cECG/Matrices/Sessions/')
+       else:
+              Sessionfolder=('C:/Users/310122653/Dropbox/PHD/python/cECG/Matrices/Sessions/')
+
+
+       # ONLY 5 MIN FEATURES AND ANNOTATIONS
+       dateien_each_patient="FeatureMatrix_","Annotations_" #non scaled values. The values should be scaled over all patient and not per patient. Therfore this is better
+       windowlength="30"
+       Neonate_all='4','5','6','7','9','10','11','12','13'
+       babies=[i for i in range(len(selectedbabies))]# return to main function
+       
+       Neonate=[(Neonate_all[i]) for i in selectedbabies];Neonate=tuple(Neonate)
+       FeatureMatrixECG=[0]*len(Neonate)
+       
+       import os
+       import glob
+       from pathlib import Path
+             
+       FeatureMatrix_each_patient_fromSession=[None]*len(Neonate)            
+            
+       Dateien=glob.glob(Sessionfolder +'FeatureMatrix_'+Neonate[K]+ '_**')
+       FeatureMatrix_Session_each_patient=[None]*len(Dateien)
+
+       
+       # IMPORTING *.MAT FILES
+       for w in range(len(Dateien)): 
+               sio.absolute_import   
+               matlabfile=sio.loadmat(r'{}'.format(Dateien[w])) 
+    
+       # REWRITING FEATURES AND ANNOTATIONS    
+           #NANs should already be deleted. Not scaled.
+           #NANs can be in as there are only NaNs with NaN annotations. Nan al label is not used
+               FeatureMatrix_Session_each_patient[w]=matlabfile.get('FeatureMatrix') 
+               FeatureMatrix_Session_each_patient[w]=FeatureMatrix_Session_each_patient[w].transpose() # transpose to datapoints,features
+       
+       # COllecting all the indices from the parts where single sessions are empty. We get the start index and the lengt. This is combined into on lare arry with all the indices that are missing. Those are then deleted at once from the annotations
+       IndexRange=np.zeros(len(WelcheSindLeer))
+       startindex=list()
+       for l in range(len(WelcheSindLeer)):
+              IndexRange[l]=(len(FeatureMatrix_Session_each_patient[WelcheSindLeer[l]])) # collect how many smaples are missing
+              VonDa=[[(len(FeatureMatrix_Session_each_patient[t])) for t in range(WelcheSindLeer[l])]] # starting index by collecting all length before the missing one
+              VonDa=np.sum(VonDa)
+              startindex.append(list(range(VonDa+1,VonDa+1+np.int(IndexRange[l]))))# getting all the start indices in one array/list
+
+       indices=np.hstack(startindex)
+       AnnotMatrix_each_patient[K]= np.delete(AnnotMatrix_each_patient[K][:],[indices])
+
+       return AnnotMatrix_each_patient
+#%%
+def correcting_Annotations_length(K,WelcheSindzuKurz,ux,selectedbabies,AnnotMatrix_each_patient,FeatureMatrix_Session_each_patient):
+# This function is needed to load the ECG if the cECG Is loaded to compare the length of missing cECG value. The missing length can then be deleted from the annotations      
+
+       # COllecting all the indices from the parts where single sessions are empty. We get the start index and the lengt. This is combined into on lare arry with all the indices that are missing. Those are then deleted at once from the annotations
+       IndexRange=np.zeros(len(WelcheSindzuKurz))
+       startindex=list()
+       for l in range(len(WelcheSindzuKurz)):
+              IndexRange[l]=(len(FeatureMatrix_Session_each_patient[WelcheSindzuKurz[l]])) # collect how many smaples are missing
+              VonDa=[[(len(FeatureMatrix_Session_each_patient[t])) for t in range(WelcheSindzuKurz[l])]] # starting index by collecting all length before the missing one
+              VonDa=np.int(np.sum(VonDa))
+#              startindex.append(list(range(VonDa+1,VonDa+1+np.int(IndexRange[l]))))# getting all the start indices in one array/list
+              startindex.append(list(range(VonDa,VonDa+np.int(IndexRange[l]))))# getting all the start indices in one array/list
+
+       indices=np.hstack(startindex)
+       indices=sorted(indices, reverse=True )
+       
+#       for i in range(len(indices)):
+#              AnnotMatrix_each_patient[K]= np.delete(AnnotMatrix_each_patient[K],[indices[i],1])
+       AnnotMatrix_each_patient[K]= np.delete(AnnotMatrix_each_patient[K][:],[indices])
+       AnnotMatrix_each_patient[K]=AnnotMatrix_each_patient[K][:, None] # make it a 2D array. Otherwise error later
+       return AnnotMatrix_each_patient
+
+
        
