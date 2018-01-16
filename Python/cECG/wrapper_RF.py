@@ -64,7 +64,7 @@ Loading data declaration
 **************************************************************************
 """
 
-dataset='ECG'  # Either ECG or cECG and later maybe MMC or InnerSense
+dataset='cECG'  # Either ECG or cECG and later maybe MMC or InnerSense
 #***************
 selectedbabies =[0,2,3,5,7] #0-8 ('4','5','6','7','9','10','11','12','13')
 label=[1,2,3,4] # 1=AS 2=QS 3=Wake 4=Care-taking 5=NA 6= transition
@@ -201,7 +201,7 @@ Smoothing_short=0 # # short part of any annotation are smoothed out.
 Pack4=0 # State 4 is often split in multible short parts. Merge them together as thebaby does not calm downin 1 min
 #---------------------------
 
-Movingwindow=50 # WIndow size for moving average
+Movingwindow=47 # WIndow size for moving average
 preaveraging=0
 postaveraging=1
 exceptNOF=1 #Which Number of Features (NOF) should be used with moving average?  all =oth tzero; only some or all except some defined in FEAT
