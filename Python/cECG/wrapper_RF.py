@@ -74,7 +74,7 @@ class var():
        #lst_old=[3,4,5,6,7,8,9,10,11,14,15,16,17,18,19,20,21,22,23,24,25,26] # From first paper to compare with new features
        #lst=lst_old
        #---------------------------
-       label=[1,2,4] # 1=AS 2=QS 3=Wake 4=Care-taking 5=NA 6= transition
+       label=[1,2,3,4] # 1=AS 2=QS 3=Wake 4=Care-taking 5=NA 6= transition
        #--------------------------
        classweight=1 # If classweights should be automatically ('balanced') determined and used for trainnig use: 0; IF they should be calculated by own function use 1
        saving=0
@@ -127,7 +127,7 @@ class var():
        crit='gini' #gini or entropy method for trees 
        msl=5  #min_sample_leafe
        SS=2; #min_samples_split
-       deciding_performance_measure='Kappa' #Kappa , F1_second_label, F1_third_label, F1_fourth_labelí
+       deciding_performance_measure='F1_second_label' #Kappa , F1_second_label, F1_third_label, F1_fourth_labelí
        
 """
 #*********************************************************************************************************
@@ -142,7 +142,7 @@ var_CT.FEAT=[1,2,27,28] # FRO CT
 #----------------------------
 var_CT.SamplingMeth='NONE'  # 'NONE' 'SMOTE'  or 'ADASYN'
 #----------------------------
-var_CT.PolyTrans=0#use polinominal transformation on the Features specified in FEATp
+var_CT.PolyTrans=1#use polinominal transformation on the Features specified in FEATp
 var_CT.onlyNOpF=1 # [0,1,2,27,28,29]
 #FEATp=[1,2,27,28] # FRO CT
 var_CT.FEATp=[1,2,27,28]
@@ -227,7 +227,7 @@ def loadingdata_LOOCV(whichMix,choosenlabel):
        y_each_patient,classpredictions,probabilities,Fimportance,RES_F1_macro,RES_KAPPA,RES_F1_micro,RES_F1_weigth,RES_F1_all,RES_scoring,\
        RES_Kappa_Performance,RES_F1_mall\
        =leave_one_out_cross_validation(babies,AnnotMatrix_each_patient,FeatureMatrix,\
-         var_load.label,var_load.classweight, var_load.Used_classifier, var_load.drawing, var_load.lst,var.ChoosenKind,var_load.SamplingMeth,var_load.probability_threshold,var_load.plotting,var_load.compare,var_load.saving,\
+         var_load.label,var_load.classweight, var_load.Used_classifier, var_load.drawing, var_load.lst,var_load.ChoosenKind,var_load.SamplingMeth,var_load.probability_threshold,var_load.plotting,var_load.compare,var_load.saving,\
          var_load.N,var_load.crit,var_load.msl,var_load.SS,var_load.LossF,var_load.deciding_performance_measure)
 
        RES_F1_all_mean=array(mean(RES_F1_all,0))       
@@ -246,13 +246,11 @@ RUN 1 QS
 """    
 if 2 in var.label:
        y_each_patient,RES_classpredictions_QS,probabilities,RES_Fimportance_QS,_,\
-       RES_Kappa_QS,_,_,RES_F1_all_QS,_, _,_,RES_F1_all_QS_mean\
+       RES_Kappa_QS,_,_,RES_F1_all_QS,_,_,_,RES_F1_all_QS_mean\
        =loadingdata_LOOCV(var.WhichMix,'QS')       
        
        classpredictions=RES_classpredictions_QS[:]
-
-
-                    
+#                    
 """
 RUN 3 CT
 """
@@ -272,7 +270,9 @@ if 4 in var.label:
                             classpredictions[o][p]=4
                      elif classpredictions[o][p]==4 and RES_classpredictions_CT[o][p]!=4: # CT determines if 4 or not
                             classpredictions[o][p]=RES_classpredictions_CT[o][p]
-                                              
+                     elif classpredictions[o][p]!=4 and RES_classpredictions_CT[o][p]!=4: # CT determines if 4 or not
+                            classpredictions[o][p]=RES_classpredictions_CT[o][p]
+                                                                                            
                             
 
 """
@@ -292,7 +292,9 @@ if 6 in var.label:
                      if RES_classpredictions_IS[o][p]==6: 
                             classpredictions[o][p]=6
                      elif classpredictions[o][p]==6 and RES_classpredictions_IS[o][p]!=6: # CT determines if 4 or not
-                            classpredictions[o][p]=RES_classpredictions_IS[o][p]                            
+                            classpredictions[o][p]=RES_classpredictions_IS[o][p]  
+                     elif classpredictions[o][p]!=6 and RES_classpredictions_IS[o][p]!=6: # CT determines if 4 or not
+                            classpredictions[o][p]=RES_classpredictions_IS[o][p]                             
 """ 
 Overall perfomrance analysis
 """

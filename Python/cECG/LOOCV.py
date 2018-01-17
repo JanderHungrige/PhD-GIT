@@ -27,6 +27,7 @@ def leave_one_out_cross_validation(babies,AnnotMatrix_each_patient,FeatureMatrix
          label,classweight, Used_classifier, drawing, lst,ChoosenKind,SamplingMeth,probability_threshold,\
          plotting,compare,saving,\
          N,crit,msl,SS,LossF,deciding_performance_measure):
+
        
        t_a=list()
 #       classpredictions=list()
@@ -133,4 +134,4 @@ def leave_one_out_cross_validation(babies,AnnotMatrix_each_patient,FeatureMatrix
               ValidatedPerformance_K,\
               AAAValidatedPerformance_all
               
-           
+ 
