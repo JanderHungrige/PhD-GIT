@@ -63,7 +63,7 @@ savepath='/home/310122653/Pyhton_Folder/cECG/Results/'
 Loading data declaration
 **************************************************************************
 """
-class var():
+class var_QS():
        dataset='cECG'  # Either ECG or cECG and later maybe MMC or InnerSense
        #***************
        selectedbabies =[0,2,3,5,7]  #0-8 ('4','5','6','7','9','10','11','12','13')
@@ -74,7 +74,7 @@ class var():
        #lst_old=[3,4,5,6,7,8,9,10,11,14,15,16,17,18,19,20,21,22,23,24,25,26] # From first paper to compare with new features
        #lst=lst_old
        #---------------------------
-       label=[1,2,3,4] # 1=AS 2=QS 3=Wake 4=Care-taking 5=NA 6= transition
+       label=[1,2,3,4,6] # 1=AS 2=QS 3=Wake 4=Care-taking 5=NA 6= transition
        #--------------------------
        classweight=1 # If classweights should be automatically ('balanced') determined and used for trainnig use: 0; IF they should be calculated by own function use 1
        saving=0
@@ -132,9 +132,9 @@ class var():
 """
 #*********************************************************************************************************
 """      
-copy_of_var = type('copy_of_var', var.__bases__, dict(var.__dict__))       # First create copy, otherwise it changes both 
-var_CT=copy_of_var()
-
+#copy_of_var = type('copy_of_var', var.__bases__, dict(var.__dict__))       # First create copy, otherwise it changes both 
+#var_CT=copy_of_var()
+var_CT = copy.deepcopy(var_QS())
 var_CT.Movingwindow=47 # WIndow size for moving average
 var_CT.postaveraging=1
 var_CT.exceptNOF=1 #Which Number of Features (NOF) should be used with moving average?  all =oth tzero; only some or all except some defined in FEAT
@@ -158,8 +158,9 @@ var_CT.Used_classifier='RF' #RF=random forest ; ERF= extreme random forest; TR= 
 """
 #*********************************************************************************************************
 """
-copy_of_var2 = type('copy_of_var2', var.__bases__, dict(var.__dict__))       # First create copy, otherwise it changes both 
-var_IS=copy_of_var2()
+#copy_of_var2 = type('copy_of_var2', var.__bases__, dict(var.__dict__))       # First create copy, otherwise it changes both 
+#var_IS=copy_of_var2()
+var_IS = copy.deepcopy(var_QS())
 
 var_IS.Movingwindow=47 # WIndow size for moving average
 var_IS.postaveraging=1
@@ -189,11 +190,11 @@ Finished Loading data declaration
 CHECKUP
 """
 ####Cheking for miss spelling
-if var.Used_classifier not in Klassifier:
+if var_QS.Used_classifier not in Klassifier:
        sys.exit('Misspelling in Used_classifier')    
-if var.SamplingMeth not in SampMeth:
+if var_QS.SamplingMeth not in SampMeth:
        sys.exit('Misspelling in SamplingMeth')   
-if var.WhichMix not in Whichmix:
+if var_QS.WhichMix not in Whichmix:
        sys.exit('Misspelling in WhichMix')         
   
 """
@@ -202,22 +203,15 @@ Loading Data
 Class_dict, features_dict, features_indx=Feature_names()
 
 # CHOOSING WHICH FEATURE MATRIX IS USED
-def loadingdata_LOOCV(whichMix,choosenlabel):
-       if choosenlabel=='QS':
-              var_load=var
-       if choosenlabel=='CT':
-              var_load=var_CT
-       if choosenlabel=='IS':
-              var_load=var_IS              
-              
-       if var.WhichMix=='perSession':
+def loadingdata_LOOCV(whichMix,var_load):                    
+       if var_load.WhichMix=='perSession':
               babies, AnnotMatrix_each_patient,FeatureMatrix\
               =Loading_data_perSession(var_load.dataset, var_load.selectedbabies, var_load.lst, var_load.ux, var_load.scaling,\
                             var_load.LoosingAnnot5, var_load.LoosingAnnot6, var_load.LoosingAnnot6_2, var_load.direction6, var_load.plotting, var_load.Smoothing_short, var_load.Pack4,var_load.merge34,\
                             var_load.Movingwindow, var_load.preaveraging, var_load.postaveraging, var_load.exceptNOF, var_load.onlyNOF, var_load.FEAT,\
                             var_load.PolyTrans, var_load.ExpFactor, var_load.exceptNOpF, var_load.onlyNOpF, var_load.FEATp,var_load.RBFkernel)       
               
-       elif var.WhichMix=='all':              
+       elif var_load.WhichMix=='all':              
               babies, AnnotMatrix_each_patient, FeatureMatrix\
               =Loading_data_all(var_load.dataset,var_load.selectedbabies,var_load.lst,var_load.ux,var_load.scaling,\
                             var_load.LoosingAnnot5,var_load.LoosingAnnot6,var_load.LoosingAnnot6_2,var_load.direction6,var_load.plotting,var_load.Smoothing_short,var_load.Pack4,var_load.merge34,\
@@ -236,29 +230,27 @@ def loadingdata_LOOCV(whichMix,choosenlabel):
        RES_F1_macro,RES_KAPPA,RES_F1_micro,RES_F1_weigth,RES_F1_all,RES_scoring,\
        RES_Kappa_Performance,RES_F1_mall,RES_F1_all_mean\
 
-
-
 """
 LOOCV ************************************************************************
 """   
 """
 RUN 1 QS
 """    
-if 2 in var.label:
+if 2 in var_QS.label:
        y_each_patient,RES_classpredictions_QS,probabilities,RES_Fimportance_QS,_,\
        RES_Kappa_QS,_,_,RES_F1_all_QS,_,_,_,RES_F1_all_QS_mean\
-       =loadingdata_LOOCV(var.WhichMix,'QS')       
+       =loadingdata_LOOCV(var_QS.WhichMix,var_QS)       
        
        classpredictions=RES_classpredictions_QS[:]
-#                    
+                    
 """
 RUN 3 CT
 """
-if 4 in var.label:
+if 4 in var_QS.label:
 
        y_each_patient,RES_classpredictions_CT,probabilities,RES_Fimportance_CT,_,\
        RES_Kappa_CT,_,_,RES_F1_all_CT,_,_,_,RES_F1_all_CT_mean\
-       =loadingdata_LOOCV(var.WhichMix,'CT')   
+       =loadingdata_LOOCV(var_CT.WhichMix,var_CT)   
        
        #Optimize prediction by taking predictions for specific classes from differnt classifiers
        #The base predicitions are the one from QS classifier. Over that each 4(care taking) is decided/changed by the classifer results for CT
@@ -272,16 +264,14 @@ if 4 in var.label:
                             classpredictions[o][p]=RES_classpredictions_CT[o][p]
                      elif classpredictions[o][p]!=4 and RES_classpredictions_CT[o][p]!=4: # CT determines if 4 or not
                             classpredictions[o][p]=RES_classpredictions_CT[o][p]
-                                                                                            
-                            
-
+                                                                                                                    
 """
 RUN 2  IS
 """
-if 6 in var.label:
+if 6 in var_QS.label:
        y_each_patient,RES_classpredictions_IS,probabilities,RES_Fimportance_IS,_,\
        RES_Kappa_IS,_,_,RES_F1_all_IS,_,_,_,RES_F1_all_IS_mean\
-       =loadingdata_LOOCV(var.WhichMix,'IS')   
+       =loadingdata_LOOCV(var_IS.WhichMix,var_IS)   
        
        #Optimize prediction by taking predictions for specific classes from differnt classifiers
        #The base predicitions are the one from QS classifier. Over that each 4(care taking) is decided/changed by the classifer results for CT
@@ -298,34 +288,26 @@ if 6 in var.label:
 """ 
 Overall perfomrance analysis
 """
-                            
-# Kappa over all annotations and predictions merged together
-                     
-                     
+# Kappa over all annotations and predictions merged together                                    
 tmp_orig=vstack(y_each_patient)
 tmp_pred=hstack(classpredictions)
 
 #Performance of optimized predictions 
-RES1_final_F1_all=zeros(shape=(len(var.selectedbabies),len(var.label)))
+RES1_final_F1_all=zeros(shape=(len(var_QS.selectedbabies),len(var_QS.label)))
 RES1_final_Kappa=list()
 
-for K in range(len(var.selectedbabies)):
-       RES1_final_Kappa.append(cohen_kappa_score(y_each_patient[K].ravel(),classpredictions[K],labels=var.label)) # Find the threshold where Kapaa gets max
-       RES1_final_F1_all[K]=f1_score(y_each_patient[K].ravel(), classpredictions[K],labels=var.label, average=None)#, pos_label=None)
+for K in range(len(var_QS.selectedbabies)):
+       RES1_final_Kappa.append(cohen_kappa_score(y_each_patient[K].ravel(),classpredictions[K],labels=var_QS.label)) # Find the threshold where Kapaa gets max
+       RES1_final_F1_all[K]=f1_score(y_each_patient[K].ravel(), classpredictions[K],labels=var_QS.label, average=None)#, pos_label=None)
        
 RES1_final_Kappa.append(mean(RES1_final_Kappa))
 RES1_final_F1_mall=array(mean(RES1_final_F1_all,0))    
-RES1_final_Kappa_overall=cohen_kappa_score(tmp_orig.ravel(),tmp_pred.ravel(),labels=var.label)
-
-
-
+RES1_final_Kappa_overall=cohen_kappa_score(tmp_orig.ravel(),tmp_pred.ravel(),labels=var_QS.label)
 
 
 """
 END
 """
-
-
 
 import time
 t=time.localtime()
@@ -337,6 +319,6 @@ print("--- %i seconds ---" % (time.time() - start_time))
 print("--- %i min ---" % Minuten)
 print("--- %i h ---" % Stunden)
 
-if var.saving:
+if var_QS.saving:
     print("saved at: %s" %zeit)
 print("Console 1 : "); print(description)
