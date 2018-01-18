@@ -193,72 +193,127 @@ RES_F1_all_QS_mean=array(mean(RES_F1_all_QS,0))
 """
 RUN 2  CT
 """
+if 4 in label:
+       lst = [0,1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16,17,18,19,20,21,22,23,24,25,26,27,28,29,30,31,32]
+       Movingwindow=47 # WIndow size for moving average
+       preaveraging=0
+       postaveraging=1
+       exceptNOF=1 #Which Number of Features (NOF) should be used with moving average?  all =oth tzero; only some or all except some defined in FEAT
+       onlyNOF=0 # [0,1,2,27,28,29]
+       #FEAT=[0,1,2]
+       FEAT=[1,2,27,28] # FRO CT
+       #----------------------------
+       
+       PolyTrans=1#use polinominal transformation on the Features specified in FEATp
+       ExpFactor=2# which degree of polinomonal (2)
+       exceptNOpF= 0#Which Number of Features (NOpF) should be used with polynominal fit?  all =0; only some or all except some defined in FEATp
+       onlyNOpF=1 # [0,1,2,27,28,29]
+       #FEATp=[1,2,27,28] # FRO CT
+       FEATp=[0,3,4,5]
+       #----------------------------
+       #For up and downsampling of data
+       SamplingMeth='NONE'  # 'NONE' 'SMOTE'  or 'ADASYN'
+       ChoosenKind=0   # 0-3['regular','borderline1','borderline2','svm'] only when using SMOTE
+       #--------------------
+       Used_classifier='RF' #RF=random forest ; ERF= extreme random forest; TR= Decission tree; GB= Gradient boosting
+       N=50 # Estimators for the trees
+       crit='entropy' #gini or entropy
+       msl=3  #min_sample_leafe
+       deciding_performance_measure='Kappa' #Kappa , F1_second_label, F1_third_label, F1_fourth_label
+       
+       
+       
+       babies,AnnotMatrix_each_patient,FeatureMatrix_each_patient= loadingdata(WhichMix)                  
+       
+       """
+       LOOCV
+       """ 
+       y_each_patient,\
+       RES_classpredictions_CT,\
+       RES_Fimportance_CT,\
+       RES_F1_macro_CT,\
+       RES_Kappa_CT,\
+       RES_F1_micro_CT,\
+       RES_F1_weigth_CT,\
+       RES_F1_all_CT,\
+       RES_scoring_CT,\
+       RES_Kappa_Performance_CT,\
+       RES_F1_all_CT\
+       =leave_one_out_cross_validation(babies,AnnotMatrix_each_patient,FeatureMatrix_each_patient,\
+                label,classweight, Used_classifier, drawing, lst, ChoosenKind,SamplingMeth,probability_threshold,plotting,compare,saving,\
+                N,crit,msl,deciding_performance_measure)
+       
+       RES_F1_all_CT_mean=array(mean(RES_F1_all_CT,0))
 
-LoosingAnnot5= 0# exchange state 5 if inbetween another state with this state (also only if length <= x)
-LoosingAnnot6=0  #Exchange state 6 with the following or previouse state (depending on direction)
-LoosingAnnot6_2=0 # as above, but chooses always 2 when 6 was lead into with 1
-direction6=0 # if State 6 should be replaced with the state before, use =1; odtherwise with after, use =0. Annotators used before.
-Smoothing_short=0 # # short part of any annotation are smoothed out. 
-Pack4=0 # State 4 is often split in multible short parts. Merge them together as thebaby does not calm downin 1 min
-#---------------------------
-
-Movingwindow=47 # WIndow size for moving average
-preaveraging=0
-postaveraging=1
-exceptNOF=1 #Which Number of Features (NOF) should be used with moving average?  all =oth tzero; only some or all except some defined in FEAT
-onlyNOF=0 # [0,1,2,27,28,29]
-#FEAT=[0,1,2]
-FEAT=[1,2,27,28] # FRO CT
-#----------------------------
-
-PolyTrans=1#use polinominal transformation on the Features specified in FEATp
-ExpFactor=2# which degree of polinomonal (2)
-exceptNOpF= 0#Which Number of Features (NOpF) should be used with polynominal fit?  all =0; only some or all except some defined in FEATp
-onlyNOpF=1 # [0,1,2,27,28,29]
-#FEATp=[1,2,27,28] # FRO CT
-FEATp=[0,3,4,5]
-#--------------------
-N=50 # Estimators for the trees
-crit='entropy' #gini or entropy
-msl=3  #min_sample_leafe
-deciding_performance_measure='Kappa' #Kappa , F1_second_label, F1_third_label, F1_fourth_label
 
 
-
-babies,AnnotMatrix_each_patient,FeatureMatrix_each_patient= loadingdata(WhichMix)                  
-
+"""" 
+Run 3 IS
 """
-LOOCV
-""" 
-y_each_patient,\
-RES_classpredictions_CT,\
-RES_Fimportance_CT,\
-RES_F1_macro_CT,\
-RES_Kappa_CT,\
-RES_F1_micro_CT,\
-RES_F1_weigth_CT,\
-RES_F1_all_CT,\
-RES_scoring_CT,\
-RES_Kappa_Performance_CT,\
-RES_F1_all_CT\
-=leave_one_out_cross_validation(babies,AnnotMatrix_each_patient,FeatureMatrix_each_patient,\
-         label,classweight, Used_classifier, drawing, lst, ChoosenKind,SamplingMeth,probability_threshold,plotting,compare,saving,\
-         N,crit,msl,deciding_performance_measure)
-
-RES_F1_all_CT_mean=array(mean(RES_F1_all_CT,0))
+if 6 in label:
+       lst = [0,1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16,17,18,19,20,21,22,23,24,25,26,27,28,29,30,31,32]
+       Movingwindow=47 # WIndow size for moving average
+       preaveraging=0
+       postaveraging=1
+       exceptNOF=1 #Which Number of Features (NOF) should be used with moving average?  all =oth tzero; only some or all except some defined in FEAT
+       onlyNOF=0 # [0,1,2,27,28,29]
+       #FEAT=[0,1,2]
+       FEAT=[1,2,27,28] # FRO CT
+       #----------------------------
+       
+       PolyTrans=1#use polinominal transformation on the Features specified in FEATp
+       ExpFactor=2# which degree of polinomonal (2)
+       exceptNOpF= 0#Which Number of Features (NOpF) should be used with polynominal fit?  all =0; only some or all except some defined in FEATp
+       onlyNOpF=1 # [0,1,2,27,28,29]
+       #FEATp=[1,2,27,28] # FRO CT
+       FEATp=[0,3,4,5]
+       #----------------------------
+       #For up and downsampling of data
+       SamplingMeth='NONE'  # 'NONE' 'SMOTE'  or 'ADASYN'
+       ChoosenKind=0   # 0-3['regular','borderline1','borderline2','svm'] only when using SMOTE
+       #--------------------
+       Used_classifier='RF' #RF=random forest ; ERF= extreme random forest; TR= Decission tree; GB= Gradient boosting
+       N=100 # Estimators for the trees
+       crit='entropy' #gini or entropy
+       msl=3  #min_sample_leafe
+       deciding_performance_measure='Kappa' #Kappa , F1_second_label, F1_third_label, F1_fourth_label
+       
+       babies,AnnotMatrix_each_patient,FeatureMatrix_each_patient= loadingdata(WhichMix)                  
+       
+       """
+       LOOCV ************************************************************************
+       """       
+       y_each_patient,\
+       RES_classpredictions_IS,\
+       RES_Fimportance_IS,\
+       RES_F1_macro_IS,\
+       RES_Kappa_IS,\
+       RES_F1_micro_IS,\
+       RES_F1_weigth_IS,\
+       RES_F1_all_IS,\
+       RES_scoring_IS,\
+       RES_Kappa_Performance_IS,\
+       RES_F1_all_IS\
+       =leave_one_out_cross_validation(babies,AnnotMatrix_each_patient,FeatureMatrix_each_patient,\
+                label,classweight, Used_classifier, drawing, lst,ChoosenKind,SamplingMeth,probability_threshold,plotting,compare,saving,\
+                N,crit,msl,deciding_performance_measure)
+       
+       RES_F1_all_IS_mean=array(mean(RES_F1_all_IS,0))
 
 #Optimize prediction by taking predictions for specific classes from differnt classifiers
 #The base predicitions are the one from QS classifier. Over that each 4(care taking) is decided/changed by the classifer results for CT
+      
 classpredictions=RES_classpredictions_QS[:]
-for o in range(len(RES_classpredictions_CT)):
-       for p in range(len(RES_classpredictions_CT[o])):  
-#              ind=classpredictionsCT[o]==4
-              if RES_classpredictions_CT[o][p]==4: 
-                     classpredictions[o][p]=4
-              elif classpredictions[o][p]==4 and RES_classpredictions_CT[o][p]!=4: # CT determines if 4 or not
-                     classpredictions[o][p]=RES_classpredictions_CT[o][p]
-              elif classpredictions[o][p]!=4 and RES_classpredictions_CT[o][p]!=4:
-                     classpredictions[o][p]=classpredictions[o][p]
+if 4 in label: 
+       for o in range(len(RES_classpredictions_CT)):
+              for p in range(len(RES_classpredictions_CT[o])):  
+       #              ind=classpredictionsCT[o]==4
+                     if RES_classpredictions_CT[o][p]==4: 
+                            classpredictions[o][p]=4
+                     elif classpredictions[o][p]==4 and RES_classpredictions_CT[o][p]!=4: # CT determines if 4 or not
+                            classpredictions[o][p]=RES_classpredictions_CT[o][p]
+                     elif classpredictions[o][p]!=4 and RES_classpredictions_CT[o][p]!=4:
+                            classpredictions[o][p]=classpredictions[o][p]
 # Kappa over all annotations and predictions merged together
 tmp_orig=vstack(y_each_patient)
 tmp_pred=hstack(classpredictions)
