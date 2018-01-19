@@ -24,7 +24,7 @@ import sys #to add strings together
 import pdb # use pdb.set_trace() as breakpoint
 
 def leave_one_out_cross_validation(babies,AnnotMatrix_each_patient,FeatureMatrix_each_patient,\
-         label,classweight, Used_classifier, drawing, lst,ChoosenKind,SamplingMeth,probability_threshold,\
+         label,classweight, Used_classifier, drawing, lst,ChoosenKind,SamplingMeth,probability_threshold,ASprobLimit,\
          plotting,compare,saving,\
          N,crit,msl,deciding_performance_measure):
        
@@ -77,7 +77,7 @@ def leave_one_out_cross_validation(babies,AnnotMatrix_each_patient,FeatureMatrix
            resultsF1_macro,resultsK,resultsF1_micro,resultsF1_weight,resultsF1_all,Fimportances,scoring,prediction,probs \
            =Classifier_random_forest(Xfeat_test, Xfeat,y_each_patient_test, y_each_patient, selected_babies, \
                                      selected_test, label,classweight, Used_classifier, drawing, lst,\
-                                     ChoosenKind,SamplingMeth,probability_threshold,N,crit,msl,deciding_performance_measure)
+                                     ChoosenKind,SamplingMeth,probability_threshold,ASprobLimit,N,crit,msl,deciding_performance_measure)
        
        #    =Classifier_random_forest(Xfeat,y_each_patient,selected_babies,label,classweight)       
        #    sys.exit('Jan werth 222')
