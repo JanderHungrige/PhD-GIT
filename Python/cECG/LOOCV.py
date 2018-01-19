@@ -34,6 +34,7 @@ def leave_one_out_cross_validation(babies,AnnotMatrix_each_patient,FeatureMatrix
 #       for F in babies:
 #              classpredictions=list((zeros(shape=(len(babies),len(FeatureMatrix_each_patient[F])))))
        classpredictions=list()
+       Probabilities=list()
        Performance=list()
        ValidatedPerformance_macro=list()
        ValidatedPerformance_K=list()
@@ -73,7 +74,7 @@ def leave_one_out_cross_validation(babies,AnnotMatrix_each_patient,FeatureMatrix
        
            #Validate with left out patient 
            # Run the classifier with the selected FEature subset in selecteF
-           resultsF1_macro,resultsK,resultsF1_micro,resultsF1_weight,resultsF1_all,Fimportances,scoring,prediction \
+           resultsF1_macro,resultsK,resultsF1_micro,resultsF1_weight,resultsF1_all,Fimportances,scoring,prediction,probs \
            =Classifier_random_forest(Xfeat_test, Xfeat,y_each_patient_test, y_each_patient, selected_babies, \
                                      selected_test, label,classweight, Used_classifier, drawing, lst,\
                                      ChoosenKind,SamplingMeth,probability_threshold,N,crit,msl,deciding_performance_measure)
@@ -84,6 +85,7 @@ def leave_one_out_cross_validation(babies,AnnotMatrix_each_patient,FeatureMatrix
            ValidatedFimportance[V]=Fimportances
            
            classpredictions.append(prediction)
+           Probabilities.append(probs)
            ValidatedPerformance_macro.append(resultsF1_macro)
            ValidatedPerformance_K.append(resultsK)
            ValidatedPerformance_micro.append(resultsF1_micro)
@@ -122,6 +124,7 @@ def leave_one_out_cross_validation(babies,AnnotMatrix_each_patient,FeatureMatrix
            
        return y_each_patient_test,\
               classpredictions,\
+              Probabilities,\
               ValidatedFimportance,\
               ValidatedPerformance_macro,\
               ValidatedPerformance_K,\

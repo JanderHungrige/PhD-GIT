@@ -68,7 +68,7 @@ dataset='cECG'  # Either ECG or cECG and later maybe MMC or InnerSense
 #***************
 selectedbabies =[0,2,3,5,7] #0-8 ('4','5','6','7','9','10','11','12','13')
 #selectedbabies=[0,1,3,4,5,6,7,8]
-label=[1,2,3,4] # 1=AS 2=QS 3=Wake 4=Care-taking 5=NA 6= transition
+label=[1,2,3,4,6] # 1=AS 2=QS 3=Wake 4=Care-taking 5=NA 6= transition
 
 #---------------------------
 # Feature list
@@ -151,44 +151,47 @@ Class_dict, features_dict, features_indx=Feature_names()
 # CHOOSING WHICH FEATURE MATRIX IS USED
 def loadingdata(whichMix):
        if WhichMix=='perSession':            
-              babies, AnnotMatrix_each_patient,FeatureMatrix\
+              babies, AnnotMatrix_each_patient,FeatureMatrix_each_patient\
               =Loading_data_perSession(dataset, selectedbabies, lst,ux, scaling,\
                             LoosingAnnot5, LoosingAnnot6, LoosingAnnot6_2, direction6, plotting, Smoothing_short, Pack4, merge34,\
                             Movingwindow, preaveraging, postaveraging, exceptNOF, onlyNOF, FEAT,\
                             PolyTrans, ExpFactor, exceptNOpF, onlyNOpF, FEATp)       
               
        elif WhichMix=='all':              
-              babies, AnnotMatrix_each_patient, FeatureMatrix\
+              babies, AnnotMatrix_each_patient, FeatureMatrix_each_patient\
               =Loading_data_all(dataset,selectedbabies,lst,ux,scaling,\
                             LoosingAnnot5,LoosingAnnot6,LoosingAnnot6_2,direction6,plotting,Smoothing_short,Pack4,merge34,\
                             Movingwindow,preaveraging,postaveraging,exceptNOF,onlyNOF,FEAT,\
                             PolyTrans,ExpFactor,exceptNOpF,onlyNOpF,FEATp)
               
-       return babies,AnnotMatrix_each_patient,FeatureMatrix
+       """
+       LOOCV ************************************************************************
+       """                
+       y_each_patient,\
+       classpredictions,\
+       Probabilities,\
+       Fimportance,\
+       F1_macro,\
+       Kappa,\
+       F1_micro,\
+       F1_weigth,\
+       F1_all,\
+       scoring,\
+       Kappa_Performance,\
+       F1_all\
+       =leave_one_out_cross_validation(babies,AnnotMatrix_each_patient,FeatureMatrix_each_patient,\
+                label,classweight, Used_classifier, drawing, lst,ChoosenKind,SamplingMeth,probability_threshold,plotting,compare,saving,\
+                N,crit,msl,deciding_performance_measure)
+       
+       RES_F1_all_IS_mean=array(mean(F1_all,0))              
+              
+       return  babies, y_each_patient, classpredictions,Probabilities, Fimportance, Kappa,F1_all
 
 
+babies,y_each_patient,classpredictions_QS,probabilities_QS,Fimportance_QS,Kappa_QS,F1_all_QS\
+= loadingdata(WhichMix)                  
 
-babies,AnnotMatrix_each_patient,FeatureMatrix_each_patient= loadingdata(WhichMix)                  
-
-"""
-LOOCV ************************************************************************
-"""       
-y_each_patient,\
-RES_classpredictions_QS,\
-RES_Fimportance_QS,\
-RES_F1_macro_QS,\
-RES_Kappa_QS,\
-RES_F1_micro_QS,\
-RES_F1_weigth_QS,\
-RES_F1_all_QS,\
-RES_scoring_QS,\
-RES_Kappa_Performance_QS,\
-RES_F1_all_QS\
-=leave_one_out_cross_validation(babies,AnnotMatrix_each_patient,FeatureMatrix_each_patient,\
-         label,classweight, Used_classifier, drawing, lst,ChoosenKind,SamplingMeth,probability_threshold,plotting,compare,saving,\
-         N,crit,msl,deciding_performance_measure)
-
-RES_F1_all_QS_mean=array(mean(RES_F1_all_QS,0))
+F1_all_QS_mean=array(mean(F1_all_QS,0))
 
 """
 RUN 2  CT
@@ -221,31 +224,16 @@ if 4 in label:
        msl=3  #min_sample_leafe
        deciding_performance_measure='Kappa' #Kappa , F1_second_label, F1_third_label, F1_fourth_label
        
-       
-       
-       babies,AnnotMatrix_each_patient,FeatureMatrix_each_patient= loadingdata(WhichMix)                  
+          
+#       babies,AnnotMatrix_each_patient,FeatureMatrix_each_patient= loadingdata(WhichMix)                  
        
        """
        LOOCV
-       """ 
-       y_each_patient,\
-       RES_classpredictions_CT,\
-       RES_Fimportance_CT,\
-       RES_F1_macro_CT,\
-       RES_Kappa_CT,\
-       RES_F1_micro_CT,\
-       RES_F1_weigth_CT,\
-       RES_F1_all_CT,\
-       RES_scoring_CT,\
-       RES_Kappa_Performance_CT,\
-       RES_F1_all_CT\
-       =leave_one_out_cross_validation(babies,AnnotMatrix_each_patient,FeatureMatrix_each_patient,\
-                label,classweight, Used_classifier, drawing, lst, ChoosenKind,SamplingMeth,probability_threshold,plotting,compare,saving,\
-                N,crit,msl,deciding_performance_measure)
+       """
+       babies, y_each_patient,classpredictions_CT,probabilities_CT,Fimportance_CT,Kappa_CT,F1_all_CT\
+       = loadingdata(WhichMix)  
        
-       RES_F1_all_CT_mean=array(mean(RES_F1_all_CT,0))
-
-
+       F1_all_CT_mean=array(mean(F1_all_CT,0))
 
 """" 
 Run 3 IS
@@ -276,44 +264,64 @@ if 6 in label:
        N=100 # Estimators for the trees
        crit='entropy' #gini or entropy
        msl=3  #min_sample_leafe
-       deciding_performance_measure='Kappa' #Kappa , F1_second_label, F1_third_label, F1_fourth_label
-       
-       babies,AnnotMatrix_each_patient,FeatureMatrix_each_patient= loadingdata(WhichMix)                  
+       deciding_performance_measure='Kappa' #Kappa , F1_second_label, F1_third_label, F1_fourth_label                        
        
        """
        LOOCV ************************************************************************
        """       
-       y_each_patient,\
-       RES_classpredictions_IS,\
-       RES_Fimportance_IS,\
-       RES_F1_macro_IS,\
-       RES_Kappa_IS,\
-       RES_F1_micro_IS,\
-       RES_F1_weigth_IS,\
-       RES_F1_all_IS,\
-       RES_scoring_IS,\
-       RES_Kappa_Performance_IS,\
-       RES_F1_all_IS\
-       =leave_one_out_cross_validation(babies,AnnotMatrix_each_patient,FeatureMatrix_each_patient,\
-                label,classweight, Used_classifier, drawing, lst,ChoosenKind,SamplingMeth,probability_threshold,plotting,compare,saving,\
-                N,crit,msl,deciding_performance_measure)
+       babies, y_each_patient, classpredictions_IS,probabilities_IS,Fimportance_IS,Kappa_IS,F1_all_IS\
+       = loadingdata(WhichMix)  
        
-       RES_F1_all_IS_mean=array(mean(RES_F1_all_IS,0))
+       F1_all_IS_mean=array(mean(F1_all_IS,0))
 
+       
 #Optimize prediction by taking predictions for specific classes from differnt classifiers
 #The base predicitions are the one from QS classifier. Over that each 4(care taking) is decided/changed by the classifer results for CT
       
-classpredictions=RES_classpredictions_QS[:]
+classpredictions=classpredictions_QS[:]
 if 4 in label: 
-       for o in range(len(RES_classpredictions_CT)):
-              for p in range(len(RES_classpredictions_CT[o])):  
+       for o in range(len(classpredictions)):
+              for p in range(len(classpredictions[o])):  
        #              ind=classpredictionsCT[o]==4
-                     if RES_classpredictions_CT[o][p]==4: 
+                     if classpredictions_CT[o][p]==4: 
                             classpredictions[o][p]=4
-                     elif classpredictions[o][p]==4 and RES_classpredictions_CT[o][p]!=4: # CT determines if 4 or not
-                            classpredictions[o][p]=RES_classpredictions_CT[o][p]
-                     elif classpredictions[o][p]!=4 and RES_classpredictions_CT[o][p]!=4:
+                     elif classpredictions[o][p]==4 and classpredictions_CT[o][p]!=4: # CT determines if 4 or not
+                            classpredictions[o][p]=classpredictions_CT[o][p]
+                     elif classpredictions[o][p]!=4 and classpredictions_CT[o][p]!=4:
                             classpredictions[o][p]=classpredictions[o][p]
+                            
+if 6 in label and 4 not in label: 
+       for o in range(len(classpredictions)):
+              for p in range(len(classpredictions[o])):  
+                     if classpredictions_IS[o][p]==6: 
+                            classpredictions[o][p]=6
+                     elif classpredictions[o][p]==6 and classpredictions_IS[o][p]!=6: # CT determines if 6 or not
+                            classpredictions[o][p]=classpredictions_IS[o][p]
+                     elif classpredictions[o][p]!=6 and classpredictions_IS[o][p]!=6:
+                            classpredictions[o][p]=classpredictions[o][p]
+                            
+if 4 and 6 in label:
+       for o in range(len(classpredictions)):
+              for p in range(len(classpredictions[o])):
+                     if classpredictions_CT[o][p]==4:                      
+                            classpredictions[o][p]=4
+                     elif classpredictions[o][p]==4 and classpredictions_CT[o][p]!=4: # CT determines if 4 or not
+                            classpredictions[o][p]=classpredictions_CT[o][p]
+                     elif classpredictions[o][p]!=4 and classpredictions_CT[o][p]!=4:
+                            classpredictions[o][p]=classpredictions[o][p]
+                     if classpredictions_IS[o][p]==6:
+                            if classpredictions[o][p]==4: # if there is already class CT and CT probability is not 20% larger than Is, replace with IS, otherwise leave 4
+                                   if probabilities_IS[o][p,label.index(6)]>1.2*probabilities_CT[o][p,label.index(4)]: # if the probability for CT is 20% higher than for IS take CT, otherwise IS
+                                          classpredictions[o][p]=6
+                                   else: 
+                                          classpredictions[o][p]=4
+                            else:
+                                   classpredictions[o][p]=6
+                            
+                     elif classpredictions[o][p]==6 and classpredictions_IS[o][p]!=6: # CT determines if 6 or not
+                            classpredictions[o][p]=classpredictions_IS[o][p]
+                     elif classpredictions[o][p]!=6 and classpredictions_IS[o][p]!=6:
+                            classpredictions[o][p]=classpredictions[o][p]          
 # Kappa over all annotations and predictions merged together
 tmp_orig=vstack(y_each_patient)
 tmp_pred=hstack(classpredictions)
@@ -331,14 +339,9 @@ RES1_F1_all_mean=array(mean(RES1_F1_all,0))
 RES1_KAPPA_overall=cohen_kappa_score(tmp_orig.ravel(),tmp_pred.ravel(),labels=label)
 
 
-
-
-
 """
 END
 """
-
-
 
 import time
 t=time.localtime()
