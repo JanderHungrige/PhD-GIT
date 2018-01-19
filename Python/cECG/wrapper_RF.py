@@ -186,36 +186,35 @@ F1_all_QS_mean=array(mean(F1_all_QS,0))
 """
 RUN 2  CT
 """
-if 4 in label:
+if 4 in label:         
        lst = [0,1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16,17,18,19,20,21,22,23,24,25,26,27,28,29,30,31,32]
+       #---------------------------
+       scaling='Z' # Scaling Z or MM 
+       #---------------------------
        Movingwindow=47 # WIndow size for moving average
        preaveraging=0
        postaveraging=1
        exceptNOF=1 #Which Number of Features (NOF) should be used with moving average?  all =oth tzero; only some or all except some defined in FEAT
        onlyNOF=0 # [0,1,2,27,28,29]
-       #FEAT=[0,1,2]
-       FEAT=[1,2,27,28] # FRO CT
+       FEAT=[0,1,2,27,28]
        #----------------------------
-       
        PolyTrans=1#use polinominal transformation on the Features specified in FEATp
        ExpFactor=2# which degree of polinomonal (2)
        exceptNOpF= 0#Which Number of Features (NOpF) should be used with polynominal fit?  all =0; only some or all except some defined in FEATp
        onlyNOpF=1 # [0,1,2,27,28,29]
-       #FEATp=[1,2,27,28] # FRO CT
        FEATp=[0,3,4,5]
-       #----------------------------
-       #For up and downsampling of data
-       SamplingMeth='NONE'  # 'NONE' 'SMOTE'  or 'ADASYN'
+       #---------------------------
+       SamplingMeth='NONE'  # 'NONE' 'SMOTE'  or 'ADASYN' #For up and downsampling of data
        ChoosenKind=0   # 0-3['regular','borderline1','borderline2','svm'] only when using SMOTE
+       #---------------------------
+       probability_threshold=1 # 1 to use different probabilities tan 0.5 to decide on the class. At the moment it is >=0.2 for any other calss then AS
+       ASprobLimit=[0.7,0.7]# Determine the AS lower limit for the probability for which another class is chosen than AS. For: [3 labels, >3 labels]
        #--------------------
        Used_classifier='RF' #RF=random forest ; ERF= extreme random forest; TR= Decission tree; GB= Gradient boosting
        N=50 # Estimators for the trees
-       crit='entropy' #gini or entropy
+       crit='entropy' #gini or entropy method for trees 
        msl=3  #min_sample_leafe
-       deciding_performance_measure='Kappa' #Kappa , F1_second_label, F1_third_label, F1_fourth_label
-       
-          
-#       babies,AnnotMatrix_each_patient,FeatureMatrix_each_patient= loadingdata(WhichMix)                  
+       deciding_performance_measure='Kappa' #Kappa , F1_second_label, F1_third_label, F1_fourth_label 
        
        """
        LOOCV
@@ -230,32 +229,34 @@ Run 3 IS
 """
 if 6 in label:
        lst = [0,1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16,17,18,19,20,21,22,23,24,25,26,27,28,29,30,31,32]
-       Movingwindow=47 # WIndow size for moving average
+       #---------------------------
+       scaling='Z' # Scaling Z or MM 
+       #---------------------------
+       Movingwindow=10 # WIndow size for moving average
        preaveraging=0
        postaveraging=1
        exceptNOF=1 #Which Number of Features (NOF) should be used with moving average?  all =oth tzero; only some or all except some defined in FEAT
        onlyNOF=0 # [0,1,2,27,28,29]
-       #FEAT=[0,1,2]
-       FEAT=[1,2,27,28] # FRO CT
+       FEAT=[0,1,2]
        #----------------------------
-       
-       PolyTrans=1#use polinominal transformation on the Features specified in FEATp
+       PolyTrans=0#use polinominal transformation on the Features specified in FEATp
        ExpFactor=2# which degree of polinomonal (2)
        exceptNOpF= 0#Which Number of Features (NOpF) should be used with polynominal fit?  all =0; only some or all except some defined in FEATp
        onlyNOpF=1 # [0,1,2,27,28,29]
-       #FEATp=[1,2,27,28] # FRO CT
        FEATp=[0,3,4,5]
-       #----------------------------
-       #For up and downsampling of data
-       SamplingMeth='NONE'  # 'NONE' 'SMOTE'  or 'ADASYN'
+       #---------------------------
+       SamplingMeth='NONE'  # 'NONE' 'SMOTE'  or 'ADASYN' #For up and downsampling of data
        ChoosenKind=0   # 0-3['regular','borderline1','borderline2','svm'] only when using SMOTE
+       #---------------------------
+       probability_threshold=1 # 1 to use different probabilities tan 0.5 to decide on the class. At the moment it is >=0.2 for any other calss then AS
+       ASprobLimit=[0.7,0.7]# Determine the AS lower limit for the probability for which another class is chosen than AS. For: [3 labels, >3 labels]
        #--------------------
        Used_classifier='RF' #RF=random forest ; ERF= extreme random forest; TR= Decission tree; GB= Gradient boosting
        N=100 # Estimators for the trees
-       crit='entropy' #gini or entropy
-       msl=3  #min_sample_leafe
-       deciding_performance_measure='Kappa' #Kappa , F1_second_label, F1_third_label, F1_fourth_label                        
-       
+       crit='gini' #gini or entropy method for trees 
+       msl=5  #min_sample_leafe
+       deciding_performance_measure='F1_second_label' #Kappa , F1_second_label, F1_third_label, F1_fourth_label
+
        """
        LOOCV ************************************************************************
        """       
