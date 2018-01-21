@@ -299,7 +299,7 @@ Random Forrest
 '''   
 def Classifier_random_forest(Xfeat_test, Xfeat,y_each_patient_test, y_each_patient, selected_babies, \
                               selected_test, label,classweight, Used_classifier, drawing, lst, ChoosenKind,\
-                              SamplingMeth,probability_threshold,ASprobLimit,N,crit,msl,deciding_performance_measure):
+                              SamplingMeth,probability_threshold,ASprobLimit,N,crit,msl,deciding_performance_measure,dispinfo):
        
 
 #### CREATING THE sampleweight FOR SELECTED BABIES  
@@ -333,16 +333,18 @@ def Classifier_random_forest(Xfeat_test, Xfeat,y_each_patient_test, y_each_patie
         CW=1
     elif(classweight==1) and len(unique(classlabels))!=len(label):
         CW_label=unique(classlabels) #which values arein an array
-        if len(CW_label)==1:                
-            print('classweight config skiped once as only one class exist')
+        if len(CW_label)==1:        
+            if dispinfo:
+                   print('classweight config skiped once as only one class exist')
             CW=0
         else:
-            print('used labels are:',CW_label, 'instead of:',label)            
+            if dispinfo:
+                   print('used labels are:',CW_label, 'instead of:',label)            
             cW=compute_class_weight(class_weight, CW_label, classlabels)
             cWdict=dict(zip(label,cW))#the class weight need to be a dictionarry of the form:{class_label : value}
             CW=1
-           
-    disp(cWdict)       
+    if dispinfo:       
+           disp(cWdict)       
             
             
 #The Random Forest / Extreme Random Forest / Gradiant boosting
@@ -439,7 +441,8 @@ def Classifier_random_forest(Xfeat_test, Xfeat,y_each_patient_test, y_each_patie
                              preliminaryK[k]=f1_score(y_test.ravel(), preliminary_pred,labels=label, average=None)[3]       
 #!!!!!!!! To change klassifier for perfomance measure  
                maxK=preliminaryK.argmax(axis=0)
-               print('Used probability Thresh: %.2f' % probthres_Grid[maxK])
+               if dispinfo:
+                      print('Used probability Thresh: %.2f' % probthres_Grid[maxK])
                probthres=probthres_Grid[maxK] #repeat creating the predictions with the optimal probabilty threshold
                for i in range(len(probs)):
                       if len(label)==3:

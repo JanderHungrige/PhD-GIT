@@ -150,7 +150,7 @@ def Loading_data_all(dataset,selectedbabies,lst,ux,scaling,\
 def Loading_data_perSession(dataset,selectedbabies,lst,ux,scaling,\
                      LoosingAnnot5,LoosingAnnot6,LoosingAnnot6_2,direction6,plotting,Smoothing_short,Pack4,merge34,\
                      Movingwindow,preaveraging,postaveraging,exceptNOF,onlyNOF,FEAT,\
-                     PolyTrans,ExpFactor,exceptNOpF,onlyNOpF,FEATp):    
+                     PolyTrans,ExpFactor,exceptNOpF,onlyNOpF,FEATp,dispinfo):    
        
        """
        Creating Feature Matrix per session

@@ -26,7 +26,7 @@ import pdb # use pdb.set_trace() as breakpoint
 def leave_one_out_cross_validation(babies,AnnotMatrix_each_patient,FeatureMatrix_each_patient,\
          label,classweight, Used_classifier, drawing, lst,ChoosenKind,SamplingMeth,probability_threshold,ASprobLimit,\
          plotting,compare,saving,\
-         N,crit,msl,deciding_performance_measure):
+         N,crit,msl,deciding_performance_measure,dispinfo):
        
        t_a=list()
 #       classpredictions=list()
@@ -46,7 +46,8 @@ def leave_one_out_cross_validation(babies,AnnotMatrix_each_patient,FeatureMatrix
        
        for V in range(len(babies)):
            print('**************************')
-           print('Validating on patient: %i' %(V+1) ) 
+           if dispinfo:
+                  print('Validating on patient: %i' %(V+1) ) 
            
            selected_babies=list(delete(babies,babies[V]))# Babies to train and test on ; j-1 as index starts with 0
            selected_test=babies[V]# Babies to validate on 
@@ -77,7 +78,7 @@ def leave_one_out_cross_validation(babies,AnnotMatrix_each_patient,FeatureMatrix
            resultsF1_macro,resultsK,resultsF1_micro,resultsF1_weight,resultsF1_all,Fimportances,scoring,prediction,probs \
            =Classifier_random_forest(Xfeat_test, Xfeat,y_each_patient_test, y_each_patient, selected_babies, \
                                      selected_test, label,classweight, Used_classifier, drawing, lst,\
-                                     ChoosenKind,SamplingMeth,probability_threshold,ASprobLimit,N,crit,msl,deciding_performance_measure)
+                                     ChoosenKind,SamplingMeth,probability_threshold,ASprobLimit,N,crit,msl,deciding_performance_measure,dispinfo)
        
        #    =Classifier_random_forest(Xfeat,y_each_patient,selected_babies,label,classweight)       
        #    sys.exit('Jan werth 222')
