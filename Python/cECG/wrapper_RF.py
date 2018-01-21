@@ -68,7 +68,7 @@ dataset='cECG'  # Either ECG or cECG and later maybe MMC or InnerSense
 #***************
 selectedbabies =[0,2,3,5,7] #0-8 ('4','5','6','7','9','10','11','12','13')
 #selectedbabies=[0,1,3,4,5,6,7,8]
-label=[1,2,3,4,6] # 1=AS 2=QS 3=Wake 4=Care-taking 5=NA 6= transition
+label=[1,2,3,4] # 1=AS 2=QS 3=Wake 4=Care-taking 5=NA 6= transition
 #---------------------------
 # Feature list
 lst = [0,1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16,17,18,19,20,21,22,23,24,25,26,27,28,29,30,31,32]
@@ -168,7 +168,7 @@ def loadingdata(whichMix):
        F1_all,\
        scoring,\
        Kappa_Performance,\
-       F1_all\
+       F1_all_mean\
        =leave_one_out_cross_validation(babies,AnnotMatrix_each_patient,FeatureMatrix_each_patient,\
                 label,classweight, Used_classifier, drawing, lst,ChoosenKind,SamplingMeth,probability_threshold,ASprobLimit,plotting,compare,saving,\
                 N,crit,msl,deciding_performance_measure)

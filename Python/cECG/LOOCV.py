@@ -110,7 +110,7 @@ def leave_one_out_cross_validation(babies,AnnotMatrix_each_patient,FeatureMatrix
        """
        
        ValidatedPerformance_K.append(mean(ValidatedPerformance_K)) 
-       AAAValidatedPerformance_all=array(mean(ValidatedPerformance_all,0))
+       ValidatedPerformance_all_mean=array(mean(ValidatedPerformance_all,0))
        
        
        if saving:      
@@ -133,5 +133,5 @@ def leave_one_out_cross_validation(babies,AnnotMatrix_each_patient,FeatureMatrix
               ValidatedPerformance_all,\
               Validatedscoring,\
               ValidatedPerformance_K,\
-              AAAValidatedPerformance_all
+              ValidatedPerformance_all_mean
            
