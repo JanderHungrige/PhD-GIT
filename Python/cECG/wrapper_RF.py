@@ -67,7 +67,7 @@ Loading data declaration & Wrapper variables
 dataset='cECG'  # Either ECG or cECG and later maybe MMC or InnerSense
 #***************
 selectedbabies =[0,1,2,3,6,7] #0-8 ('4','5','6','7','9','10','11','12','13')
-#selectedbabies=[0,1,3,4,5,6,7,8]
+selectedbabies=[0,2,3,5,6,7,8]
 label=[1,2,3,4] # 1=AS 2=QS 3=Wake 4=Care-taking 5=NA 6= transition
 #---------------------------
 # Feature list
@@ -89,7 +89,7 @@ PolyTrans=0#use polinominal transformation on the Features specified in FEATp
 ExpFactor=2# which degree of polinomonal (2)
 exceptNOpF= 0#Which Number of Features (NOpF) should be used with polynominal fit?  all =0; only some or all except some defined in FEATp
 onlyNOpF=1 # [0,1,2,27,28,29]
-FEATp=[0,3,4,5]
+FEATp=[0,3,4,5]#12
 #---------------------------
 SamplingMeth='NONE'  # 'NONE' 'SMOTE'  or 'ADASYN' #For up and downsampling of data
 ChoosenKind=0   # 0-3['regular','borderline1','borderline2','svm'] only when using SMOTE
@@ -204,8 +204,8 @@ if 4 in label:
        onlyNOpF=1 # [0,1,2,27,28,29]
        FEATp=[0,3,4,5]
        #---------------------------
-       SamplingMeth='NONE'  # 'NONE' 'SMOTE'  or 'ADASYN' #For up and downsampling of data
-       ChoosenKind=0   # 0-3['regular','borderline1','borderline2','svm'] only when using SMOTE
+       SamplingMeth='SMOTE'  # 'NONE' 'SMOTE'  or 'ADASYN' #For up and downsampling of data
+       ChoosenKind=1   # 0-3['regular','borderline1','borderline2','svm'] only when using SMOTE
        #---------------------------
        probability_threshold=1 # 1 to use different probabilities tan 0.5 to decide on the class. At the moment it is >=0.2 for any other calss then AS
        ASprobLimit=[0.7,0.7]# Determine the AS lower limit for the probability for which another class is chosen than AS. For: [3 labels, >3 labels]
@@ -273,7 +273,7 @@ classpredictions=classpredictions_QS[:]
 if 4 in label: 
        for o in range(len(classpredictions)):
               for p in range(len(classpredictions[o])):  
-                     if classpredictions_CT[o][p]==4: # and probablities_CT[o][p]>0.16 and probabilities_QS[o][p]<0.27    
+                     if classpredictions_CT[o][p]==4 and probabilities_CT[o][p,label.index(4)]>0.2 and probabilities_QS[o][p,label.index(2)]<0.3  :  
                             classpredictions[o][p]=4
                      elif classpredictions[o][p]==4 and classpredictions_CT[o][p]!=4: # CT determines if 4 or not
                             classpredictions[o][p]=classpredictions_CT[o][p]
@@ -319,6 +319,7 @@ tmp_pred=hstack(classpredictions)
 #Performance of optimized predictions 
 RES1_F1_all=zeros(shape=(len(babies),len(label)))
 KonfMAT=list()
+KonfMATall=list()
 RES1_Kappa=list()
 
 for K in range(len(babies)):
@@ -329,6 +330,7 @@ RES1_kappa_STD=std(RES1_Kappa)
 RES1_Kappa.append(mean(RES1_Kappa))
 RES1_F1_all_mean=array(mean(RES1_F1_all,0))    
 RES1_KAPPA_overall=cohen_kappa_score(tmp_orig.ravel(),tmp_pred.ravel(),labels=label)
+KonfMATall.append(confusion_matrix(tmp_orig.ravel(), tmp_pred.ravel(), labels=label, sample_weight=None))
 
 
 """
