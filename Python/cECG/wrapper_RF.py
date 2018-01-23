@@ -71,8 +71,8 @@ Rpeakmethod='R' #R or M
 dataset='cECG'  # Either ECG or cECG and later maybe MMC or InnerSense
 #***************
 selectedbabies =[0,2,3,5,7] #0-8 ('4','5','6','7','9','10','11','12','13')
-#selectedbabies=[0,1,2,3,5,6,7,8]
-label=[1,2,3,4] # 1=AS 2=QS 3=Wake 4=Care-taking 5=NA 6= transition
+selectedbabies=[0,1,2,3,5,6,7,8]
+label=[1,2,6] # 1=AS 2=QS 3=Wake 4=Care-taking 5=NA 6= transition
 #---------------------------
 # Feature list
 lst = [0,1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16,17,18,19,20,21,22,23,24,25,26,27,28,29,32] 
@@ -99,7 +99,7 @@ SamplingMeth='NONE'  # 'NONE' 'SMOTE'  or 'ADASYN' #For up and downsampling of d
 ChoosenKind=0   # 0-3['regular','borderline1','borderline2','svm'] only when using SMOTE
 #---------------------------
 probability_threshold=1 # 1 to use different probabilities tan 0.5 to decide on the class. At the moment it is >=0.2 for any other calss then AS
-ASprobLimit=[0.7,0.7]# Determine the AS lower limit for the probability for which another class is chosen than AS. For: [3 labels, >3 labels]
+ASprobLimit=[0.65,0.7]# Determine the AS lower limit for the probability for which another class is chosen than AS. For: [3 labels, >3 labels]
 WhichMix='perSession' #perSession or all  # determine how the data was scaled. PEr session or just per patient
 #--------------------
 Used_classifier='RF' #RF=random forest ; ERF= extreme random forest; TR= Decission tree; GB= Gradient boosting
@@ -214,7 +214,7 @@ if 4 in label:
        ChoosenKind=1   # 0-3['regular','borderline1','borderline2','svm'] only when using SMOTE
        #---------------------------
        probability_threshold=1 # 1 to use different probabilities tan 0.5 to decide on the class. At the moment it is >=0.2 for any other calss then AS
-       ASprobLimit=[0.70,0.7]# Determine the AS lower limit for the probability for which another class is chosen than AS. For: [3 labels, >3 labels]
+       ASprobLimit=[0.6,0.7]# Determine the AS lower limit for the probability for which another class is chosen than AS. For: [3 labels, >3 labels]
        #--------------------
        Used_classifier='RF' #RF=random forest ; ERF= extreme random forest; TR= Decission tree; GB= Gradient boosting
        N=50 # Estimators for the trees
@@ -232,9 +232,14 @@ if 4 in label:
 
 """" 
 Run 3 IS
+0-3 ECG
+4-15 Timedomain (+30,31)
+16-26 freqdomain
+27-33 nonlin
 """
+
 if 6 in label:
-       lst = [0,1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16,17,18,19,20,21,22,23,24,25,26,27,28,29,32]
+       lst = [4,5,6,7,8,9,10,11,12,13,14,15,16,17,18,19,20,21,22,23,24,25,26,27,28,29,32]
 
        
        #---------------------------
@@ -257,7 +262,7 @@ if 6 in label:
        ChoosenKind=0   # 0-3['regular','borderline1','borderline2','svm'] only when using SMOTE
        #---------------------------
        probability_threshold=1 # 1 to use different probabilities tan 0.5 to decide on the class. At the moment it is >=0.2 for any other calss then AS
-       ASprobLimit=[0.7,0.7]# Determine the AS lower limit for the probability for which another class is chosen than AS. For: [3 labels, >3 labels]
+       ASprobLimit=[0.65,0.7]# Determine the AS lower limit for the probability for which another class is chosen than AS. For: [3 labels, >3 labels]
        #--------------------
        Used_classifier='RF' #RF=random forest ; ERF= extreme random forest; TR= Decission tree; GB= Gradient boosting
        N=500 # Estimators for the trees
