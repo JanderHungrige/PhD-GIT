@@ -26,7 +26,7 @@ from sklearn.kernel_approximation import RBFSampler
 
 
 
-def Loading_data_all(dataset,selectedbabies,lst,ux,scaling,\
+def Loading_data_all(dataset,selectedbabies,lst,Rpeakmethod,ux,scaling,\
                      LoosingAnnot5,LoosingAnnot6,LoosingAnnot6_2,direction6,plotting,Smoothing_short,Pack4,merge34,\
                      Movingwindow,preaveraging,postaveraging,exceptNOF,onlyNOF,FEAT,\
                      PolyTrans,ExpFactor,exceptNOpF,onlyNOpF,FEATp,RBFkernel):
@@ -34,17 +34,28 @@ def Loading_data_all(dataset,selectedbabies,lst,ux,scaling,\
        """
        START *************************************************************************
        """
-       
-       if 'ECG'== dataset:
-              if ux:
-                     folder=('/home/310122653/Pyhton_Folder/cECG/Matrices/')
-              else:
-                     folder=('C:/Users/310122653/Dropbox/PHD/python/cECG/Matrices/')
-       if 'cECG'==dataset:
-              if ux:  
-                     folder=('/home/310122653/Pyhton_Folder/cECG/cMatrices/')
-              else:
-                     folder=('C:/Users/310122653/Dropbox/PHD/python/cECG/cMatrices/')
+       if Rpeakmethod == 'R':
+              if 'ECG'== dataset:
+                     if ux:
+                            folder=('/home/310122653/Pyhton_Folder/cECG/Matrices/')
+                     else:
+                            folder=('C:/Users/310122653/Dropbox/PHD/python/cECG/Matrices/')
+              if 'cECG'==dataset:
+                     if ux:  
+                            folder=('/home/310122653/Pyhton_Folder/cECG/cMatrices/')
+                     else:
+                            folder=('C:/Users/310122653/Dropbox/PHD/python/cECG/cMatrices/')
+       elif Rpeakmethod == 'M':
+              if 'ECG'== dataset:
+                     if ux:
+                            folder=('/home/310122653/Pyhton_Folder/cECG/MatricesM/')
+                     else:
+                            folder=('C:/Users/310122653/Dropbox/PHD/python/cECG/MatricesM/')
+              if 'cECG'==dataset:
+                     if ux:  
+                            folder=('/home/310122653/Pyhton_Folder/cECG/cMatricesM/')
+                     else:
+                            folder=('C:/Users/310122653/Dropbox/PHD/python/cECG/cMatricesM/')              
            
        # ONLY 5 MIN FEATURES AND ANNOTATIONS
        dateien_each_patient="FeatureMatrix_","Annotations_" #non scaled values. The values should be scaled over all patient and not per patient. Therfore this is better
@@ -147,7 +158,7 @@ def Loading_data_all(dataset,selectedbabies,lst,ux,scaling,\
        
        #%%
        
-def Loading_data_perSession(dataset,selectedbabies,lst,ux,scaling,\
+def Loading_data_perSession(dataset,selectedbabies,lst,Rpeakmethod,ux,scaling,\
                      LoosingAnnot5,LoosingAnnot6,LoosingAnnot6_2,direction6,plotting,Smoothing_short,Pack4,merge34,\
                      Movingwindow,preaveraging,postaveraging,exceptNOF,onlyNOF,FEAT,\
                      PolyTrans,ExpFactor,exceptNOpF,onlyNOpF,FEATp,dispinfo):    
@@ -324,7 +335,7 @@ def Feature_names():
                       12:"SDaLL",                 
                       13:"SDANN", 
                       14:"SDLL",
-                      15:"SDNN",                
+                      15:"SDNN",
                       16:"HF",                 
                       17:"HFnorm",
                       18:"LF",                  
@@ -340,8 +351,9 @@ def Feature_names():
                       28:"QSE",
                       29:"SEAUC",
                       30:"pDEC",
-                      31:"SDDEC",
-                      32:"LZNN"
+                      31:"SDDEC",                      
+                      32:"LZNN",
+                      33:"LZECG"
                       }                      
        features_indx = dict((y,x) for x,y in features_dict.items())       
        return Class_dict, features_dict, features_indx

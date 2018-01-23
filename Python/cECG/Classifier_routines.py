@@ -24,6 +24,7 @@ from sklearn import tree
 from sklearn.ensemble import RandomForestClassifier
 from sklearn.ensemble import ExtraTreesClassifier
 from sklearn.ensemble import GradientBoostingClassifier
+from sklearn.linear_model import LinearRegression
 #import xgboost as xgb
 #from xgboost.sklearn import XGBClassifier
 #from xgboost import XGBClassifier
@@ -401,6 +402,9 @@ def Classifier_random_forest(Xfeat_test, Xfeat,y_each_patient_test, y_each_patie
                           criterion='friedman_mse', min_samples_split=2, min_samples_leaf=1, min_weight_fraction_leaf=0.0,\
                           max_depth=30, min_impurity_decrease=0.0, min_impurity_split=None, init=None, \
                           random_state=42, max_features=None, verbose=0, max_leaf_nodes=None, warm_start=False, presort='auto')
+      
+    elif Used_classifier=='LR':
+           clf=LinearRegression(fit_intercept=True, normalize=False, copy_X=True, n_jobs=1)
         
                     
        
