@@ -61,16 +61,16 @@ savepath='/home/310122653/Pyhton_Folder/cECG/Results/'
 """
 **************************************************************************
 Loading data declaration & Wrapper variables
-0,1,2 = ECG
-3,4,5,6,7,8,9,10,11,12,13,14,15,16,17= HRV time domain
-18,19,20,21,22,23,24,25,26,27,28 = HRV freq domain
-29,30,31,32,33
+0-3 ECG
+4-15 Timedomain (+30,31)
+16-26 freqdomain
+27-33 nonlin
 **************************************************************************
 """
 Rpeakmethod='R' #R or M
 dataset='cECG'  # Either ECG or cECG and later maybe MMC or InnerSense
 #***************
-selectedbabies =[0,2,3,5,7] #0-8 ('4','5','6','7','9','10','11','12','13')
+selectedbabies=[0,2,3,5,7,8]
 selectedbabies=[0,1,2,3,5,6,7,8]
 label=[1,2,6] # 1=AS 2=QS 3=Wake 4=Care-taking 5=NA 6= transition
 #---------------------------
@@ -84,7 +84,7 @@ scaling='Z' # Scaling Z or MM
 #---------------------------
 Movingwindow=10 # WIndow size for moving average
 preaveraging=0
-postaveraging=1
+postaveraging=0
 exceptNOF=1 #Which Number of Features (NOF) should be used with moving average?  all =oth tzero; only some or all except some defined in FEAT
 onlyNOF=0 # [0,1,2,27,28,29]
 FEAT=[0,1,2]# 9,10,11,12,13,14,15,16,17,18,19,20,21,22,23,24,25,26
@@ -105,8 +105,8 @@ WhichMix='perSession' #perSession or all  # determine how the data was scaled. P
 Used_classifier='RF' #RF=random forest ; ERF= extreme random forest; TR= Decission tree; GB= Gradient boosting
 N=100 # Estimators for the trees
 crit='gini' #gini or entropy method for trees 
-msl=5  #min_sample_leafe
-deciding_performance_measure='F1_second_label' #Kappa , F1_second_label, F1_third_label, F1_fourth_label
+msl=2  #min_sample_leafe
+deciding_performance_measure='Kappa' #Kappa , F1_second_label, F1_third_label, F1_fourth_label
 drawing=0 # draw a the tree structure
 
 #Abstellgleis
@@ -232,8 +232,8 @@ if 4 in label:
 
 """" 
 Run 3 IS
-0-3 ECG
-4-15 Timedomain (+30,31)
+0-2 ECG
+3-15 Timedomain (+30,31)
 16-26 freqdomain
 27-33 nonlin
 """
@@ -250,25 +250,26 @@ if 6 in label:
        postaveraging=1
        exceptNOF=0 #Which Number of Features (NOF) should be used with moving average?  all =oth tzero; only some or all except some defined in FEAT
        onlyNOF=0 # [0,1,2,27,28,29]
-       FEAT=[0,1,2,29]
+#       FEAT=[0,1,2,29]
+       FEAT=[lst.index(4),lst.index(5),lst.index(6),lst.index(25)]
        #----------------------------
        PolyTrans=1#use polinominal transformation on the Features specified in FEATp
        ExpFactor=2# which degree of polinomonal (2)
        exceptNOpF= 0#Which Number of Features (NOpF) should be used with polynominal fit?  all =0; only some or all except some defined in FEATp
        onlyNOpF=1 # [0,1,2,27,28,29]
-       FEATp=[0,3,4,5,6]
+       FEATp=[lst.index(8),lst.index(9),lst.index(10),lst.index(15),lst.index(16),lst.index(23)]#456 11 12 27
        #---------------------------
        SamplingMeth='NONE'  # 'NONE' 'SMOTE'  or 'ADASYN' #For up and downsampling of data
        ChoosenKind=0   # 0-3['regular','borderline1','borderline2','svm'] only when using SMOTE
        #---------------------------
        probability_threshold=1 # 1 to use different probabilities tan 0.5 to decide on the class. At the moment it is >=0.2 for any other calss then AS
-       ASprobLimit=[0.65,0.7]# Determine the AS lower limit for the probability for which another class is chosen than AS. For: [3 labels, >3 labels]
+       ASprobLimit=[0.73,0.7]# Determine the AS lower limit for the probability for which another class is chosen than AS. For: [3 labels, >3 labels]
        #--------------------
        Used_classifier='RF' #RF=random forest ; ERF= extreme random forest; TR= Decission tree; GB= Gradient boosting
        N=500 # Estimators for the trees
-       crit='gini' #gini or entropy method for trees 
+       crit='entropy' #gini or entropy method for trees 
        msl=3  #min_sample_leafe
-       deciding_performance_measure='F1_third_label' #Kappa , F1_second_label, F1_third_label, F1_fourth_label
+       deciding_performance_measure='Kappa' #Kappa , F1_second_label, F1_third_label, F1_fourth_label
 
        """
        LOOCV ************************************************************************
@@ -296,7 +297,7 @@ if 4 in label:
 if 6 in label and 4 not in label: 
        for o in range(len(classpredictions)):
               for p in range(len(classpredictions[o])):  
-                     if classpredictions_IS[o][p]==6 and probabilities_IS[o][p,label.index(6)]>0.2 and probabilities_QS[o][p,label.index(2)]<0.3  :   
+                     if classpredictions_IS[o][p]==6 :#and probabilities_IS[o][p,label.index(6)]>0.2 and probabilities_QS[o][p,label.index(2)]<0.27  :   
                             classpredictions[o][p]=6
                      elif classpredictions[o][p]==6 and classpredictions_IS[o][p]!=6: # CT determines if 6 or not
                             classpredictions[o][p]=classpredictions_IS[o][p]
