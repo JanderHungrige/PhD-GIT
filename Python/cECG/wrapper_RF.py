@@ -219,7 +219,7 @@ if 4 in label:
        ASprobLimit=[0.70,0.65]# Determine the AS lower limit for the probability for which another class is chosen than AS. For: [3 labels, >3 labels]
        #--------------------
        Used_classifier='RF' #RF=random forest ; ERF= extreme random forest; TR= Decission tree; GB= Gradient boosting
-       N=50 # Estimators for the trees
+       N=500 # Estimators for the trees
        crit='entropy' #gini or entropy method for trees 
        msl=3  #min_sample_leafe
        deciding_performance_measure='Kappa' #Kappa , F1_second_label, F1_third_label, F1_fourth_label 
