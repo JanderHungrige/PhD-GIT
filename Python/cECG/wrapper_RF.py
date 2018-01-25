@@ -221,7 +221,7 @@ if 4 in label:
        Used_classifier='RF' #RF=random forest ; ERF= extreme random forest; TR= Decission tree; GB= Gradient boosting
        N=500 # Estimators for the trees
        crit='entropy' #gini or entropy method for trees 
-       msl=3  #min_sample_leafe
+       msl=2  #min_sample_leafe
        deciding_performance_measure='Kappa' #Kappa , F1_second_label, F1_third_label, F1_fourth_label 
        
        """
