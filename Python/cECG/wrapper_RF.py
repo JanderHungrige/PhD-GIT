@@ -68,14 +68,14 @@ Loading data declaration & Wrapper variables
 **************************************************************************
 """
 Rpeakmethod='R' #R or M
-dataset='cECG'  # Either ECG or cECG and later maybe MMC or InnerSense
+dataset='ECG'  # Either ECG or cECG and later maybe MMC or InnerSense
 #***************
 selectedbabies=[0,2,3,5,7,8]
-selectedbabies=[0,1,2,3,5,6,7,8]
+#selectedbabies=[0,1,2,3,5,6,7]
 label=[1,2,6] # 1=AS 2=QS 3=Wake 4=Care-taking 5=NA 6= transition
 #---------------------------
 # Feature list
-lst = [0,1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16,17,18,19,20,21,22,23,24,25,26,27,28,29,32] 
+lst = [0,1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16,17,18,19,20,21,22,23,24,25,26,27,28,29,30,31,32] 
 #lst_old=[3,4,5,6,7,8,9,10,11,14,15,16,17,18,19,20,21,22,23,24,25,26] # From first paper to compare with new features
 #lst=lst_old
 #---------------------------
@@ -84,7 +84,7 @@ scaling='Z' # Scaling Z or MM
 #---------------------------
 Movingwindow=10 # WIndow size for moving average
 preaveraging=0
-postaveraging=0
+postaveraging=1
 exceptNOF=1 #Which Number of Features (NOF) should be used with moving average?  all =oth tzero; only some or all except some defined in FEAT
 onlyNOF=0 # [0,1,2,27,28,29]
 FEAT=[0,1,2]# 9,10,11,12,13,14,15,16,17,18,19,20,21,22,23,24,25,26
@@ -99,7 +99,7 @@ SamplingMeth='NONE'  # 'NONE' 'SMOTE'  or 'ADASYN' #For up and downsampling of d
 ChoosenKind=0   # 0-3['regular','borderline1','borderline2','svm'] only when using SMOTE
 #---------------------------
 probability_threshold=1 # 1 to use different probabilities tan 0.5 to decide on the class. At the moment it is >=0.2 for any other calss then AS
-ASprobLimit=[0.65,0.7]# Determine the AS lower limit for the probability for which another class is chosen than AS. For: [3 labels, >3 labels]
+ASprobLimit=[0.63,0.7]# Determine the AS lower limit for the probability for which another class is chosen than AS. For: [3 labels, >3 labels]
 WhichMix='perSession' #perSession or all  # determine how the data was scaled. PEr session or just per patient
 #--------------------
 Used_classifier='RF' #RF=random forest ; ERF= extreme random forest; TR= Decission tree; GB= Gradient boosting
@@ -263,7 +263,7 @@ if 6 in label:
        ChoosenKind=0   # 0-3['regular','borderline1','borderline2','svm'] only when using SMOTE
        #---------------------------
        probability_threshold=1 # 1 to use different probabilities tan 0.5 to decide on the class. At the moment it is >=0.2 for any other calss then AS
-       ASprobLimit=[0.73,0.7]# Determine the AS lower limit for the probability for which another class is chosen than AS. For: [3 labels, >3 labels]
+       ASprobLimit=[0.67,0.7]# Determine the AS lower limit for the probability for which another class is chosen than AS. For: [3 labels, >3 labels]
        #--------------------
        Used_classifier='RF' #RF=random forest ; ERF= extreme random forest; TR= Decission tree; GB= Gradient boosting
        N=500 # Estimators for the trees
@@ -287,7 +287,7 @@ classpredictions=classpredictions_QS[:]
 if 4 in label: 
        for o in range(len(classpredictions)):
               for p in range(len(classpredictions[o])):  
-                     if classpredictions_CT[o][p]==4 :#and probabilities_CT[o][p,label.index(4)]>0.2 and probabilities_QS[o][p,label.index(2)]<0.3  :  
+                     if classpredictions_CT[o][p]==4 :#and probabilities_CT[o][p,label.index(4)]>0.2 and probabilities_QS[o][p,label.index(2)]<0.27  :  
                             classpredictions[o][p]=4
                      elif classpredictions[o][p]==4 and classpredictions_CT[o][p]!=4: # CT determines if 4 or not
                             classpredictions[o][p]=classpredictions_CT[o][p]
@@ -297,7 +297,7 @@ if 4 in label:
 if 6 in label and 4 not in label: 
        for o in range(len(classpredictions)):
               for p in range(len(classpredictions[o])):  
-                     if classpredictions_IS[o][p]==6 :#and probabilities_IS[o][p,label.index(6)]>0.2 and probabilities_QS[o][p,label.index(2)]<0.27  :   
+                     if classpredictions_IS[o][p]==6:# and probabilities_IS[o][p,label.index(6)]>0.27 and probabilities_QS[o][p,label.index(2)]<0.23  :   
                             classpredictions[o][p]=6
                      elif classpredictions[o][p]==6 and classpredictions_IS[o][p]!=6: # CT determines if 6 or not
                             classpredictions[o][p]=classpredictions_IS[o][p]
