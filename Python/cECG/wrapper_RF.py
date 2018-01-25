@@ -70,8 +70,8 @@ Loading data declaration & Wrapper variables
 Rpeakmethod='R' #R or M
 dataset='cECG'  # Either ECG or cECG and later maybe MMC or InnerSense
 #***************
-selectedbabies =[0,2,3,5,7] #0-8 ('4','5','6','7','9','10','11','12','13')
-#selectedbabies=[0,1,2,3,5,6,7,8]
+#selectedbabies =[0,2,3,5,7] #0-8 ('4','5','6','7','9','10','11','12','13')
+selectedbabies=[0,1,2,3,5,6,7,8]
 label=[1,2,3,4] # 1=AS 2=QS 3=Wake 4=Care-taking 5=NA 6= transition
 #---------------------------
 # Feature list
