@@ -200,7 +200,7 @@ if 4 in label:
        Movingwindow=47 # WIndow size for moving average
        preaveraging=0
        postaveraging=1
-       exceptNOF=1 #Which Number of Features (NOF) should be used with moving average?  all =oth tzero; only some or all except some defined in FEAT
+       exceptNOF=0 #Which Number of Features (NOF) should be used with moving average?  all =oth tzero; only some or all except some defined in FEAT
        onlyNOF=0 # [0,1,2,27,28,29]
        FEAT=[0,1,2,29]
        #----------------------------
@@ -208,8 +208,9 @@ if 4 in label:
        ExpFactor=2# which degree of polinomonal (2)
        exceptNOpF= 0#Which Number of Features (NOpF) should be used with polynominal fit?  all =0; only some or all except some defined in FEATp
        onlyNOpF=1 # [0,1,2,27,28,29]
-       FEATp=[lst.index(0),lst.index(3),lst.index(4),lst.index(5)]#456 11 12 27       
-       FEATp=[0,3,4,5,30]
+#       FEATp=[lst.index(0),lst.index(3),lst.index(4),lst.index(5)]#456 11 12 27       
+#       FEATp=[0,3,4,5,30]
+       FEATp=[lst.index(11),lst.index(27),lst.index(29)]
        #---------------------------
        SamplingMeth='NONE'  # 'NONE' 'SMOTE'  or 'ADASYN' #For up and downsampling of data
        ChoosenKind=1   # 0-3['regular','borderline1','borderline2','svm'] only when using SMOTE
