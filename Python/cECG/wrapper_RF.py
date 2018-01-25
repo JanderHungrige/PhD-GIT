@@ -22,6 +22,7 @@ from Classifier_routines import Classifier_random_forest
 from GridSearch import *
 from Loading_5min_mat_files_cECG import Loading_data_all,Loading_data_perSession,Feature_names,Loading_Annotations
 from LOOCV import leave_one_out_cross_validation
+from Plotting_Feature_importance import PlottingFeatureImportance
 
 import itertools
 from matplotlib import *
@@ -58,6 +59,7 @@ description='_123456_cECG_lst_micro_'
 consoleinuse='4'
 dispinfo=0
 savepath='/home/310122653/Pyhton_Folder/cECG/Results/'
+histogram=1
 """
 **************************************************************************
 Loading data declaration & Wrapper variables
@@ -76,6 +78,7 @@ label=[1,2,3,4,6] # 1=AS 2=QS 3=Wake 4=Care-taking 5=NA 6= transition
 #---------------------------
 # Feature list
 lst = [0,1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16,17,18,19,20,21,22,23,24,25,26,27,28,29,32] 
+
 #lst_old=[3,4,5,6,7,8,9,10,11,14,15,16,17,18,19,20,21,22,23,24,25,26] # From first paper to compare with new features
 #lst=lst_old
 #---------------------------
@@ -178,11 +181,11 @@ def loadingdata(whichMix):
                 N,crit,msl,deciding_performance_measure,dispinfo)
        
        RES_F1_all_IS_mean=array(mean(F1_all,0))              
-              
-       return  babies, y_each_patient, classpredictions,Probabilities, Fimportance, Kappa,F1_all
+       meanFimportance=mean(Fimportance,0)
+       return  babies, y_each_patient, classpredictions,Probabilities, Fimportance, Kappa,F1_all,meanFimportance
 
 
-babies,y_each_patient,classpredictions_QS,probabilities_QS,Fimportance_QS,Kappa_QS,F1_all_QS\
+babies,y_each_patient,classpredictions_QS,probabilities_QS,Fimportance_QS,Kappa_QS,F1_all_QS,FimportanceMean_QS\
 = loadingdata(WhichMix)                  
 
 F1_all_QS_mean=array(mean(F1_all_QS,0))
@@ -227,7 +230,7 @@ if 4 in label:
        """
        LOOCV
        """
-       babies, y_each_patient,classpredictions_CT,probabilities_CT,Fimportance_CT,Kappa_CT,F1_all_CT\
+       babies, y_each_patient,classpredictions_CT,probabilities_CT,Fimportance_CT,Kappa_CT,F1_all_CT,FimportanceMean_CT\
        = loadingdata(WhichMix)  
        
        F1_all_CT_mean=array(mean(F1_all_CT,0))
@@ -274,7 +277,7 @@ if 6 in label:
        """
        LOOCV ************************************************************************
        """       
-       babies, y_each_patient, classpredictions_IS,probabilities_IS,Fimportance_IS,Kappa_IS,F1_all_IS\
+       babies, y_each_patient, classpredictions_IS,probabilities_IS,Fimportance_IS,Kappa_IS,F1_all_IS,FimportanceMean_IS\
        = loadingdata(WhichMix)  
        
        F1_all_IS_mean=array(mean(F1_all_IS,0))
@@ -346,6 +349,8 @@ RES1_F1_all_mean=array(mean(RES1_F1_all,0))
 RES1_KAPPA_overall=cohen_kappa_score(tmp_orig.ravel(),tmp_pred.ravel(),labels=label)
 KonfMATall.append(confusion_matrix(tmp_orig.ravel(), tmp_pred.ravel(), labels=label, sample_weight=None))
 
+
+#PlottingFeatureImportance(Fimportance_QS,Fimportance_CT,Fimportance_IS,features_dict)
 
 """
 END
