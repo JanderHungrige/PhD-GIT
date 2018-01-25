@@ -236,6 +236,7 @@ if 4 in label:
 Run 3 IS
 """
 if 6 in label:
+       #      0 1 2 3 4 5 6  7  8  9  10 11 12 13 14 15 16 17 18 19 20 21 22 23 24 25 26 28 29 30
        lst = [4,5,6,7,8,9,10,11,12,13,14,15,16,17,18,19,20,21,22,23,24,25,26,27,28,29,32]
 
        
@@ -247,13 +248,15 @@ if 6 in label:
        postaveraging=1
        exceptNOF=0 #Which Number of Features (NOF) should be used with moving average?  all =oth tzero; only some or all except some defined in FEAT
        onlyNOF=0 # [0,1,2,27,28,29]
-       FEAT=[lst.index(4),lst.index(5),lst.index(6),lst.index(25)]
+#       FEAT=[lst.index(4),lst.index(5),lst.index(6),lst.index(25)]
        #----------------------------
        PolyTrans=1#use polinominal transformation on the Features specified in FEATp
        ExpFactor=2# which degree of polinomonal (2)
        exceptNOpF= 0#Which Number of Features (NOpF) should be used with polynominal fit?  all =0; only some or all except some defined in FEATp
        onlyNOpF=1 # [0,1,2,27,28,29]
-       FEATp=[lst.index(8),lst.index(9),lst.index(10),lst.index(15),lst.index(16),lst.index(23)]#456 11 12 27       
+#       FEATp=[lst.index(8),lst.index(9),lst.index(10),lst.index(15),lst.index(16),lst.index(23)]#456 11 12 27       
+       FEATp=[lst.index(11),lst.index(12),lst.index(13),lst.index(14),lst.index(10),lst.index(24),lst.index(29),lst.index(32)]#456 11 12 27       
+       
 #       FEATp=[0,3,4,5,6]
 #       ---------------------------
        SamplingMeth='NONE'  # 'NONE' 'SMOTE'  or 'ADASYN' #For up and downsampling of data
