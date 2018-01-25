@@ -243,7 +243,7 @@ if 6 in label:
        #---------------------------
        scaling='Z' # Scaling Z or MM 
        #---------------------------
-       Movingwindow=10 # WIndow size for moving average
+       Movingwindow=47 # WIndow size for moving average
        preaveraging=0
        postaveraging=1
        exceptNOF=0 #Which Number of Features (NOF) should be used with moving average?  all =oth tzero; only some or all except some defined in FEAT
