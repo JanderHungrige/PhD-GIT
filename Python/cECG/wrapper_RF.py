@@ -87,13 +87,13 @@ preaveraging=0
 postaveraging=1
 exceptNOF=1 #Which Number of Features (NOF) should be used with moving average?  all =oth tzero; only some or all except some defined in FEAT
 onlyNOF=0 # [0,1,2,27,28,29]
-FEAT=[0,1,2]# cECG 9,10,11,12,13,14,15,16,17,18,19,20,21,22,23,24,25,26
+FEAT=[0,1,2,lst.index(33)]# cECG 9,10,11,12,13,14,15,16,17,18,19,20,21,22,23,24,25,26
 #----------------------------
 PolyTrans=0#use polinominal transformation on the Features specified in FEATp
 ExpFactor=2# which degree of polinomonal (2)
 exceptNOpF= 0#Which Number of Features (NOpF) should be used with polynominal fit?  all =0; only some or all except some defined in FEATp
 onlyNOpF=1 # [0,1,2,27,28,29]
-FEATp=[13]#12
+FEATp=[0,9,21]#12
 #---------------------------
 RBFkernel=0
 exceptNOpF= 0#Which Number of Features (NOpF) should be used with polynominal fit?  all =0; only some or all except some defined in FEATp
@@ -104,7 +104,7 @@ SamplingMeth='NONE'  # 'NONE' 'SMOTE'  or 'ADASYN' #For up and downsampling of d
 ChoosenKind=0   # 0-3['regular','borderline1','borderline2','svm'] only when using SMOTE
 #---------------------------
 probability_threshold=1 # 1 to use different probabilities tan 0.5 to decide on the class. At the moment it is >=0.2 for any other calss then AS
-ASprobLimit=[0.7,0.7]# Determine the AS lower limit for the probability for which another class is chosen than AS. For: [3 labels, >3 labels]
+ASprobLimit=[0.0,0,0]# Determine the AS lower limit for the probability for which another class is chosen than AS. For: [3 labels, >3 labels]
 WhichMix='perSession' #perSession or all  # determine how the data was scaled. PEr session or just per patient
 #--------------------
 Used_classifier='RF' #RF=random forest ; ERF= extreme random forest; TR= Decission tree; GB= Gradient boosting

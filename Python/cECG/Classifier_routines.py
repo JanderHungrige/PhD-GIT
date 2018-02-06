@@ -423,17 +423,21 @@ def Classifier_random_forest(Xfeat_test, Xfeat,y_each_patient_test, y_each_patie
                       preliminary_pred=copy(prediction[:])
                       probthres=probthres_Grid[k]
                       for i in range(len(probs)):
-                             if len(label)==3:
+                             if len(label)==2 and ASprobLimit[0]!=0:
                                     if any(probs[i,1:]>=probthres) and probs[i,0]<ASprobLimit[0]: #IF THE PROBABILITY IS HIGHER THAN ... USE THAT CLASS INSTEAD OF AS. But if AS is over ~0.7 still take AS
                                            highprob=np.argmax(probs[i,1:]) # otherwise search for max prob of the labels other than AS
-                                           preliminary_pred[i]=label[highprob+1]# change the label in predictions to the new found label; +1 as we cut the array before by 1. Otherwise false index
-                             if len(label)>3:
+                                           preliminary_pred[i]=label[highprob+1]# change the label in predictions to the new found label; +1 as we cut the array before by 1. Otherwise false index                                    
+                             if len(label)==3:
                                     if any(probs[i,1:]>=probthres) and probs[i,0]<ASprobLimit[1]: #IF THE PROBABILITY IS HIGHER THAN ... USE THAT CLASS INSTEAD OF AS. But if AS is over ~0.7 still take AS
                                            highprob=np.argmax(probs[i,1:]) # otherwise search for max prob of the labels other than AS
                                            preliminary_pred[i]=label[highprob+1]# change the label in predictions to the new found label; +1 as we cut the array before by 1. Otherwise false index
-                                                                                                                                                                    
-                             elif(probs[i,1])>=probthres: # if we have only two labels searching for max does not work
-                                    preliminary_pred[i]=label[1]# CHange the label in prediction to the second label
+                             if len(label)>3:
+                                    if any(probs[i,1:]>=probthres) and probs[i,0]<ASprobLimit[2]: #IF THE PROBABILITY IS HIGHER THAN ... USE THAT CLASS INSTEAD OF AS. But if AS is over ~0.7 still take AS
+                                           highprob=np.argmax(probs[i,1:]) # otherwise search for max prob of the labels other than AS
+                                           preliminary_pred[i]=label[highprob+1]# change the label in predictions to the new found label; +1 as we cut the array before by 1. Otherwise false index                                                                                                                                                                 
+                             if len(label)==2 and ASprobLimit[0]==0:
+                                    if(probs[i,1])>=probthres: # if we have only two labels searching for max does not work
+                                           preliminary_pred[i]=label[1]# CHange the label in prediction to the second label
 #!!!!!!!! To change klassifier for perfomance measure 
                       if deciding_performance_measure=='Kappa':              
                              preliminaryK[k]=cohen_kappa_score(y_test.ravel(),preliminary_pred,labels=label) # Find the threshold where Kapa gets max
