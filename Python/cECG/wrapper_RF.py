@@ -71,7 +71,7 @@ Rpeakmethod='R' #R or M
 dataset='cECG'  # Either ECG or cECG and later maybe MMC or InnerSense
 #***************
 #selectedbabies =[0,2,3,5,7] #0-8 ('4','5','6','7','9','10','11','12','13')
-selectedbabies=[0,1,2,3,5,6,7]
+selectedbabies=[0,1,2,3,5,6,7,8]
 label=[1,2] # 1=AS 2=QS 3=Wake 4=Care-taking 5=NA 6= transition
 #---------------------------
 # Feature list
@@ -84,7 +84,7 @@ lst = [0,1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16,17,18,19,20,21,22,23,24,25,26,27
 ux=0 # if using this on Linux cluster use 1 to change adresses
 scaling='Z' # Scaling Z or MM 
 #---------------------------
-Movingwindow=10 # WIndow size for moving average
+Movingwindow=20 # WIndow size for moving average
 preaveraging=0
 postaveraging=1
 exceptNOF=1 #Which Number of Features (NOF) should be used with moving average?  all =oth tzero; only some or all except some defined in FEAT
