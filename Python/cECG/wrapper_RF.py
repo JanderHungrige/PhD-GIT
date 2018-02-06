@@ -75,7 +75,7 @@ selectedbabies=[0,1,2,3,5,6,7,8]
 label=[1,2] # 1=AS 2=QS 3=Wake 4=Care-taking 5=NA 6= transition
 #---------------------------
 # Feature list
-lst = [0,1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16,17,18,19,20,21,22,23,24,25,26,27,28,29,30,31,32,33] 
+lst = [0,1,2,3,4,7,8,11,12,13,14,15,16,17,20,21,22,24,25,26,27,28,29,32] 
 
 #lst_old=[3,4,5,6,7,8,9,10,11,14,15,16,17,18,19,20,21,22,23,24,25,26] # From first paper to compare with new features
 #lst=lst_old
@@ -88,13 +88,13 @@ preaveraging=0
 postaveraging=1
 exceptNOF=0 #Which Number of Features (NOF) should be used with moving average?  all =oth tzero; only some or all except some defined in FEAT
 onlyNOF=0 # [0,1,2,27,28,29]
-FEAT=[0,1,2,lst.index(33)]# cECG 9,10,11,12,13,14,15,16,17,18,19,20,21,22,23,24,25,26
+FEAT=[0,1,2]# cECG 9,10,11,12,13,14,15,16,17,18,19,20,21,22,23,24,25,26
 #----------------------------
-PolyTrans=0#use polinominal transformation on the Features specified in FEATp
+PolyTrans=1#use polinominal transformation on the Features specified in FEATp
 ExpFactor=2# which degree of polinomonal (2)
 exceptNOpF= 0#Which Number of Features (NOpF) should be used with polynominal fit?  all =0; only some or all except some defined in FEATp
 onlyNOpF=1 # [0,1,2,27,28,29]
-FEATp=[0,9,21]#12
+FEATp=[lst.index(1),lst.index(2),lst.index(12),lst.index(14),lst.index(29)]#12
 #---------------------------
 RBFkernel=0
 exceptNOpF= 0#Which Number of Features (NOpF) should be used with polynominal fit?  all =0; only some or all except some defined in FEATp
@@ -112,7 +112,7 @@ Used_classifier='RF' #RF=random forest ; ERF= extreme random forest; TR= Decissi
 N=100 # Estimators for the trees
 crit='gini' #gini or entropy method for trees 
 msl=5  #min_sample_leafe
-deciding_performance_measure='Kappa' #Kappa , F1_second_label, F1_third_label, F1_fourth_label
+deciding_performance_measure='F1_second_label' #Kappa , F1_second_label, F1_third_label, F1_fourth_label
 drawing=0 # draw a the tree structure
 
 #Abstellgleis
