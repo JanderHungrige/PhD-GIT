@@ -29,7 +29,7 @@ from sklearn.kernel_approximation import RBFSampler
 def Loading_data_all(dataset,selectedbabies,lst,Rpeakmethod,ux,scaling,\
                      LoosingAnnot5,LoosingAnnot6,LoosingAnnot6_2,direction6,plotting,Smoothing_short,Pack4,merge34,\
                      Movingwindow,preaveraging,postaveraging,exceptNOF,onlyNOF,FEAT,\
-                     PolyTrans,ExpFactor,exceptNOpF,onlyNOpF,FEATp,RBFkernel):
+                     PolyTrans,RBFkernel,ExpFactor,exceptNOpF,onlyNOpF,FEATp):
 
        """
        START *************************************************************************
@@ -161,7 +161,7 @@ def Loading_data_all(dataset,selectedbabies,lst,Rpeakmethod,ux,scaling,\
 def Loading_data_perSession(dataset,selectedbabies,lst,Rpeakmethod,ux,scaling,\
                      LoosingAnnot5,LoosingAnnot6,LoosingAnnot6_2,direction6,plotting,Smoothing_short,Pack4,merge34,\
                      Movingwindow,preaveraging,postaveraging,exceptNOF,onlyNOF,FEAT,\
-                     PolyTrans,ExpFactor,exceptNOpF,onlyNOpF,FEATp,dispinfo):    
+                     PolyTrans,RBFkernel,ExpFactor,exceptNOpF,onlyNOpF,FEATp,dispinfo):    
        
        """
        Creating Feature Matrix per session
@@ -282,9 +282,14 @@ def Loading_data_perSession(dataset,selectedbabies,lst,Rpeakmethod,ux,scaling,\
                                           Cindex=np.append(Cindex,h)                            
                      FeatureMatrix_each_patient_fromSession[K]=np.delete(FeatureMatrix_each_patient_fromSession[K],Cindex,1)# delet all the doublicate features columns   
        #              lst=range(len(FeatureMatrix_each_patient_fromSession[]))
-#              if RBFkernel:
-#                     rbf_feature = RBFSampler(gamma=10, random_state=42)
-#                     FeatureMatrix_each_patient_fromSession[K] = rbf_feature.fit_transform(FeatureMatrix_each_patient_fromSession[K])
+              if RBFkernel:
+                     rbf_feature = RBFSampler(gamma=10, random_state=42)
+                     NOpF=np.arange(0,(np.size(FeatureMatrix_each_patient_fromSession[K],1))) # create range from 0-29 (lenth of features)
+                     if exceptNOpF:
+                            NOpF= np.delete(NOpF,FEATp)
+                     if onlyNOpF:
+                            NOpF=FEATp                                   
+                     FeatureMatrix_each_patient_fromSession[K] = rbf_feature.fit_transform(FeatureMatrix_each_patient_fromSession[K][:,NOpF])
                                           
               if postaveraging:             
                      NOF=np.arange(0,(np.size(FeatureMatrix_each_patient_fromSession[K],1))) # create range from 0-29 (lenth of features)
