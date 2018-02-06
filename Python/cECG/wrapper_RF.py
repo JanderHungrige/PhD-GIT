@@ -71,11 +71,11 @@ Rpeakmethod='R' #R or M
 dataset='ECG'  # Either ECG or cECG and later maybe MMC or InnerSense
 #***************
 #selectedbabies =[0,2,3,5,7] #0-8 ('4','5','6','7','9','10','11','12','13')
-selectedbabies=[0,1,2,3,5,7]
+selectedbabies=[0,1,2,3,5,6,7,8]
 label=[1,2] # 1=AS 2=QS 3=Wake 4=Care-taking 5=NA 6= transition
 #---------------------------
 # Feature list
-lst = [0,1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16,17,18,19,20,21,22,23,24,25,26,27,28,29,30,31,32,33] 
+lst = [0,1,2,3,4,5,6,7,10,11,12,13,14,15,16,18,19,21,22,23,24,25,26,30,31,32,33] 
 
 #lst_old=[3,4,5,6,7,8,9,10,11,14,15,16,17,18,19,20,21,22,23,24,25,26] # From first paper to compare with new features
 #lst=lst_old
@@ -94,12 +94,12 @@ PolyTrans=0#use polinominal transformation on the Features specified in FEATp
 ExpFactor=2# which degree of polinomonal (2)
 exceptNOpF= 0#Which Number of Features (NOpF) should be used with polynominal fit?  all =0; only some or all except some defined in FEATp
 onlyNOpF=1 # [0,1,2,27,28,29]
-FEATp=[0,3,4,5]#12
+FEATp=[13]#12
 #---------------------------
 RBFkernel=0
 exceptNOpF= 0#Which Number of Features (NOpF) should be used with polynominal fit?  all =0; only some or all except some defined in FEATp
 onlyNOpF=1 # [0,1,2,27,28,29]
-FEATp=[0,3,4,5]#12
+FEATp=[13]#12
 #---------------------------
 SamplingMeth='NONE'  # 'NONE' 'SMOTE'  or 'ADASYN' #For up and downsampling of data
 ChoosenKind=0   # 0-3['regular','borderline1','borderline2','svm'] only when using SMOTE
