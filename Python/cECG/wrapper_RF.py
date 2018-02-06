@@ -75,8 +75,7 @@ selectedbabies=[0,1,2,3,5,6,7,8]
 label=[1,2] # 1=AS 2=QS 3=Wake 4=Care-taking 5=NA 6= transition
 #---------------------------
 # Feature list
-lst = [0,1,2,3,4,5,7,11,12,13,14,15,16,18,19,21,22,23,24,25,30,32,33] 
-lst = [0,1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16,18,19,20,21,22,23,24,25,26,27,28,29,30,31,32,33] 
+lst = [0,1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16,17,18,19,20,21,22,23,24,25,26,27,28,29,30,31,32,33] 
 
 #lst_old=[3,4,5,6,7,8,9,10,11,14,15,16,17,18,19,20,21,22,23,24,25,26] # From first paper to compare with new features
 #lst=lst_old
@@ -87,7 +86,7 @@ scaling='Z' # Scaling Z or MM
 Movingwindow=10 # WIndow size for moving average
 preaveraging=0
 postaveraging=1
-exceptNOF=1 #Which Number of Features (NOF) should be used with moving average?  all =oth tzero; only some or all except some defined in FEAT
+exceptNOF=0 #Which Number of Features (NOF) should be used with moving average?  all =oth tzero; only some or all except some defined in FEAT
 onlyNOF=0 # [0,1,2,27,28,29]
 FEAT=[0,1,2,lst.index(33)]# cECG 9,10,11,12,13,14,15,16,17,18,19,20,21,22,23,24,25,26
 #----------------------------
