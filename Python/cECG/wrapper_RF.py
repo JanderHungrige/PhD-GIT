@@ -68,7 +68,7 @@ Loading data declaration & Wrapper variables
 **************************************************************************
 """
 ASlimQS=[0.62,0.7]
-ASlimCT=[0.74,0.7]
+ASlimCT=[0.75,0.7]
 ASlimIS=[0.7,0.7]
 
 Rpeakmethod='R' #R or M
