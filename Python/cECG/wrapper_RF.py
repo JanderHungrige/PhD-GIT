@@ -1,5 +1,12 @@
 # -*- coding: utf-8 -*-
 """
+Created on Wed Feb  7 10:15:04 2018
+
+@author: 310122653
+"""
+
+# -*- coding: utf-8 -*-
+"""
 Created on Thu Oct 26 13:11:02 2017
 
 @author: 310122653
@@ -70,30 +77,34 @@ Loading data declaration & Wrapper variables
 Rpeakmethod='R' #R or M
 dataset='cECG'  # Either ECG or cECG and later maybe MMC or InnerSense
 #***************
-selectedbabies =[0,2,3,5,7] #0-8 ('4','5','6','7','9','10','11','12','13')
+selectedbabies =[0,1,2,3,5,6,7,8] #0-8 ('4','5','6','7','9','10','11','12','13')
 #selectedbabies=[0,1,2,3,5,6,7,8]
-label=[1,2,3,4] # 1=AS 2=QS 3=Wake 4=Care-taking 5=NA 6= transition
+label=[1,2] # 1=AS 2=QS 3=Wake 4=Care-taking 5=NA 6= transition
 #---------------------------
 # Feature list
-lst = [0,1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16,17,18,19,20,21,22,23,24,25,26,27,28,29,32] 
+#lst = [0,1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16,17,18,19,20,21,22,23,24,25,26,27,28,29,32] 
+lst = [0,1,2,3,4,5,7,11,12,13,14,17,19,20,22,24,25,26,27,28,29,32] 
+
 #lst_old=[3,4,5,6,7,8,9,10,11,14,15,16,17,18,19,20,21,22,23,24,25,26] # From first paper to compare with new features
 #lst=lst_old
 #---------------------------
 ux=0 # if using this on Linux cluster use 1 to change adresses
 scaling='Z' # Scaling Z or MM 
 #---------------------------
-Movingwindow=10 # WIndow size for moving average
+Movingwindow=20 # WIndow size for moving average
 preaveraging=0
 postaveraging=1
 exceptNOF=1 #Which Number of Features (NOF) should be used with moving average?  all =oth tzero; only some or all except some defined in FEAT
 onlyNOF=0 # [0,1,2,27,28,29]
 FEAT=[0,1,2]# 9,10,11,12,13,14,15,16,17,18,19,20,21,22,23,24,25,26
+#FEAT=lst[lst.index(9):lst.index(26)+1]
+
 #----------------------------
 PolyTrans=0#use polinominal transformation on the Features specified in FEATp
 ExpFactor=2# which degree of polinomonal (2)
 exceptNOpF= 0#Which Number of Features (NOpF) should be used with polynominal fit?  all =0; only some or all except some defined in FEATp
 onlyNOpF=1 # [0,1,2,27,28,29]
-FEATp=[0,3,4,5]#12
+FEATp=[1,2,12,14,29,30]#12
 #---------------------------
 SamplingMeth='NONE'  # 'NONE' 'SMOTE'  or 'ADASYN' #For up and downsampling of data
 ChoosenKind=0   # 0-3['regular','borderline1','borderline2','svm'] only when using SMOTE
@@ -103,7 +114,7 @@ ASprobLimit=[0.7,0.7]# Determine the AS lower limit for the probability for whic
 WhichMix='perSession' #perSession or all  # determine how the data was scaled. PEr session or just per patient
 #--------------------
 Used_classifier='RF' #RF=random forest ; ERF= extreme random forest; TR= Decission tree; GB= Gradient boosting
-N=100 # Estimators for the trees
+N=120 # Estimators for the trees
 crit='gini' #gini or entropy method for trees 
 msl=5  #min_sample_leafe
 deciding_performance_measure='F1_second_label' #Kappa , F1_second_label, F1_third_label, F1_fourth_label
