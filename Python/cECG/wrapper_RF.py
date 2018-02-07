@@ -70,7 +70,7 @@ Loading data declaration & Wrapper variables
 lstQS=[0,1,2,3,4,5,7,8,9,11,12,13,14,15,16,17,19,20,21,22,24,26,27,28,29,31,32,33] 
 lstCT=[0,1,2,5,6,7,8,9,11,12,13,14,15,16,17,18,20,21,22,23,24,25,26,27,28,29,32,33] 
 ASQS=[0.68,0.7]
-ASCT=[0.75,0.7]
+ASCT=[0.90,0.7]
 
 FEATpQS=[]
 FEATpCT=[1,2]#,lstCT.index(14),lstCT.index(32)]
@@ -225,7 +225,7 @@ if 4 in label:
        ASprobLimit=ASCT# Determine the AS lower limit for the probability for which another class is chosen than AS. For: [3 labels, >3 labels]
        #--------------------
        Used_classifier='RF' #RF=random forest ; ERF= extreme random forest; TR= Decission tree; GB= Gradient boosting
-       N=80 # Estimators for the trees
+       N=85 # Estimators for the trees
        crit='entropy' #gini or entropy method for trees 
        msl=3  #min_sample_leafe
        deciding_performance_measure='Kappa' #Kappa , F1_second_label, F1_third_label, F1_fourth_label 
