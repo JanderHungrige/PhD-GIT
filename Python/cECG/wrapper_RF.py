@@ -69,8 +69,11 @@ Loading data declaration & Wrapper variables
 """
 lstQS=[0,1,2,3,4,5,7,8,9,11,12,13,14,15,16,17,19,20,21,22,24,26,27,28,29,31,32,33] 
 lstCT=[0,1,2,5,6,7,8,9,11,12,13,14,15,16,17,18,20,21,22,23,24,25,26,27,28,29,30,31,32,33] 
-ASQS=[0.7,0.7]
-ASCT=[0.7,0.7]
+ASQS=[0.65,0.7]
+ASCT=[0.63,0.7]
+
+FEATpQS=[]
+FEATpCT=[1,2,lstCT.index(14),lstCT.index(32)]
 
 Rpeakmethod='R' #R or M
 dataset='cECG'  # Either ECG or cECG and later maybe MMC or InnerSense
@@ -92,13 +95,13 @@ preaveraging=0
 postaveraging=1
 exceptNOF=0 #Which Number of Features (NOF) should be used with moving average?  all =oth tzero; only some or all except some defined in FEAT
 onlyNOF=0 # [0,1,2,27,28,29]
-FEAT=[0,1,2]# 9,10,11,12,13,14,15,16,17,18,19,20,21,22,23,24,25,26
+FEAT=FEATpQS# 9,10,11,12,13,14,15,16,17,18,19,20,21,22,23,24,25,26
 #----------------------------
 PolyTrans=0#use polinominal transformation on the Features specified in FEATp
 ExpFactor=2# which degree of polinomonal (2)
 exceptNOpF= 0#Which Number of Features (NOpF) should be used with polynominal fit?  all =0; only some or all except some defined in FEATp
 onlyNOpF=1 # [0,1,2,27,28,29]
-FEATp=[0,3,4,5]#12
+FEATp=FEATpQS#12
 #---------------------------
 SamplingMeth='NONE'  # 'NONE' 'SMOTE'  or 'ADASYN' #For up and downsampling of data
 ChoosenKind=0   # 0-3['regular','borderline1','borderline2','svm'] only when using SMOTE
@@ -209,11 +212,11 @@ if 4 in label:
        onlyNOF=0 # [0,1,2,27,28,29]
        FEAT=[0,1,2,29]
        #----------------------------
-       PolyTrans=0#use polinominal transformation on the Features specified in FEATp
+       PolyTrans=1#use polinominal transformation on the Features specified in FEATp
        ExpFactor=2# which degree of polinomonal (2)
        exceptNOpF= 0#Which Number of Features (NOpF) should be used with polynominal fit?  all =0; only some or all except some defined in FEATp
        onlyNOpF=1 # [0,1,2,27,28,29]
-       FEATp=[0,3,4,5,30]
+       FEATp=FEATpCT
        #---------------------------
        SamplingMeth='NONE'  # 'NONE' 'SMOTE'  or 'ADASYN' #For up and downsampling of data
        ChoosenKind=1   # 0-3['regular','borderline1','borderline2','svm'] only when using SMOTE
@@ -222,7 +225,7 @@ if 4 in label:
        ASprobLimit=ASCT# Determine the AS lower limit for the probability for which another class is chosen than AS. For: [3 labels, >3 labels]
        #--------------------
        Used_classifier='RF' #RF=random forest ; ERF= extreme random forest; TR= Decission tree; GB= Gradient boosting
-       N=50 # Estimators for the trees
+       N=80 # Estimators for the trees
        crit='entropy' #gini or entropy method for trees 
        msl=3  #min_sample_leafe
        deciding_performance_measure='Kappa' #Kappa , F1_second_label, F1_third_label, F1_fourth_label 
