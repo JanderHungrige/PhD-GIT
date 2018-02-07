@@ -68,12 +68,12 @@ Loading data declaration & Wrapper variables
 **************************************************************************
 """
 lstQS=[0,1,2,3,4,5,7,8,9,11,12,13,14,15,16,17,19,20,21,22,24,26,27,28,29,31,32,33] 
-lstCT=[0,1,2,5,6,7,8,9,11,12,13,14,15,16,17,18,20,21,22,23,24,25,26,27,28,29,30,31,32,33] 
-ASQS=[0.65,0.7]
-ASCT=[0.63,0.7]
+lstCT=[0,1,2,5,6,7,8,9,11,12,13,14,15,16,17,18,20,21,22,23,24,25,26,27,28,29,32,33] 
+ASQS=[0.68,0.7]
+ASCT=[0.75,0.7]
 
 FEATpQS=[]
-FEATpCT=[1,2,lstCT.index(14),lstCT.index(32)]
+FEATpCT=[1,2]#,lstCT.index(14),lstCT.index(32)]
 
 Rpeakmethod='R' #R or M
 dataset='cECG'  # Either ECG or cECG and later maybe MMC or InnerSense
