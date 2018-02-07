@@ -104,7 +104,7 @@ PolyTrans=1#use polinominal transformation on the Features specified in FEATp
 ExpFactor=2# which degree of polinomonal (2)
 exceptNOpF= 0#Which Number of Features (NOpF) should be used with polynominal fit?  all =0; only some or all except some defined in FEATp
 onlyNOpF=1 # [0,1,2,27,28,29]
-FEATp=[10]#12
+FEATp=[lst.index(17)]#12
 #---------------------------
 SamplingMeth='NONE'  # 'NONE' 'SMOTE'  or 'ADASYN' #For up and downsampling of data
 ChoosenKind=0   # 0-3['regular','borderline1','borderline2','svm'] only when using SMOTE
@@ -117,7 +117,7 @@ Used_classifier='RF' #RF=random forest ; ERF= extreme random forest; TR= Decissi
 N=120 # Estimators for the trees
 crit='gini' #gini or entropy method for trees 
 msl=5  #min_sample_leafe
-deciding_performance_measure='F1_second_label' #Kappa , F1_second_label, F1_third_label, F1_fourth_label
+deciding_performance_measure='Kappa' #Kappa , F1_second_label, F1_third_label, F1_fourth_label
 drawing=0 # draw a the tree structure
 
 #Abstellgleis
