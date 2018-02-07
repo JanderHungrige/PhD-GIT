@@ -67,6 +67,10 @@ Loading data declaration & Wrapper variables
 29,30,31,32,33
 **************************************************************************
 """
+ASlimQS=[0.62,0.7]
+ASlimCT=[0.74,0.7]
+ASlimIS=[0.7,0.7]
+
 Rpeakmethod='R' #R or M
 dataset='ECG'  # Either ECG or cECG and later maybe MMC or InnerSense
 #***************
@@ -103,7 +107,7 @@ SamplingMeth='NONE'  # 'NONE' 'SMOTE'  or 'ADASYN' #For up and downsampling of d
 ChoosenKind=0   # 0-3['regular','borderline1','borderline2','svm'] only when using SMOTE
 #---------------------------
 probability_threshold=1 # 1 to use different probabilities tan 0.5 to decide on the class. At the moment it is >=0.2 for any other calss then AS
-ASprobLimit=[0.63,0.7]# Determine the AS lower limit for the probability for which another class is chosen than AS. For: [3 labels, >3 labels]
+ASprobLimit=ASlimQS# Determine the AS lower limit for the probability for which another class is chosen than AS. For: [3 labels, >3 labels]
 WhichMix='perSession' #perSession or all  # determine how the data was scaled. PEr session or just per patient
 #--------------------
 Used_classifier='RF' #RF=random forest ; ERF= extreme random forest; TR= Decission tree; GB= Gradient boosting
@@ -222,7 +226,7 @@ if 4 in label:
        ChoosenKind=1   # 0-3['regular','borderline1','borderline2','svm'] only when using SMOTE
        #---------------------------
        probability_threshold=1 # 1 to use different probabilities tan 0.5 to decide on the class. At the moment it is >=0.2 for any other calss then AS
-       ASprobLimit=[0.63,0.7]# Determine the AS lower limit for the probability for which another class is chosen than AS. For: [3 labels, >3 labels]
+       ASprobLimit=ASlimCT# Determine the AS lower limit for the probability for which another class is chosen than AS. For: [3 labels, >3 labels]
        #--------------------
        Used_classifier='RF' #RF=random forest ; ERF= extreme random forest; TR= Decission tree; GB= Gradient boosting
        N=500 # Estimators for the trees
