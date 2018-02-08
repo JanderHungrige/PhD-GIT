@@ -67,15 +67,29 @@ Loading data declaration & Wrapper variables
 27-33 nonlin
 **************************************************************************
 """
+lstQS=[0,1,2,3,4,5,7,8,9,11,12,13,14,15,16,17,19,20,21,22,24,26,27,28,29,31,32,33] 
+lstIS=[0,1,2,5,6,7,8,9,11,12,13,14,15,16,17,18,20,21,22,23,24,25,26,27,28,29,32,33] 
+
+lstQS=[0,1,2,3,4,6,7,10,11,12,13,14,16,17,18,20,21,22,23,24,25,26,27,28,29,30,31,32,33] 
+lstIS=[1,2,3,6,7,10,11,12,13,14,15,16,17,18,19,21,22,23,24,25,26,27,28,29,30,31,32,33]  
+ASQS=[0.65,0.7]
+ASIS=[0.73,0.7]
+
+PolTQS=0; FEATpQS=[]#[0,3,4,5]
+PolTIS=0; FEATpIS=[]#lstIS.index(8),lstIS.index(9),lstIS.index(10),lstIS.index(15),lstIS.index(16),lstIS.index(23)]#456 11 12 27
+FEATaQS=[lstQS.index(1),lstQS.index(4),lstQS.index(13),lstQS.index(14),lstQS.index(16),lstQS.index(18),lstQS.index(21),lstQS.index(23),lstQS.index(24),lstQS.index(25)] #lstQS.index(15)
+FEATaIS=[lstIS.index(2),lstIS.index(13),lstIS.index(14),lstIS.index(16),lstIS.index(18),lstIS.index(21),lstIS.index(23),lstIS.index(24),lstIS.index(25),lstIS.index(26),lstIS.index(33)]#lstIS.index(20)
+
+
 Rpeakmethod='R' #R or M
 dataset='cECG'  # Either ECG or cECG and later maybe MMC or InnerSense
 #***************
-selectedbabies=[0,2,3,5,7,8]
 selectedbabies=[0,1,2,3,5,6,7,8]
 label=[1,2,6] # 1=AS 2=QS 3=Wake 4=Care-taking 5=NA 6= transition
 #---------------------------
 # Feature list
 lst = [0,1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16,17,18,19,20,21,22,23,24,25,26,27,28,29,32] 
+lst=lstQS
 #lst_old=[3,4,5,6,7,8,9,10,11,14,15,16,17,18,19,20,21,22,23,24,25,26] # From first paper to compare with new features
 #lst=lst_old
 #---------------------------
@@ -84,22 +98,22 @@ scaling='Z' # Scaling Z or MM
 #---------------------------
 Movingwindow=10 # WIndow size for moving average
 preaveraging=0
-postaveraging=0
+postaveraging=1
 exceptNOF=1 #Which Number of Features (NOF) should be used with moving average?  all =oth tzero; only some or all except some defined in FEAT
 onlyNOF=0 # [0,1,2,27,28,29]
-FEAT=[0,1,2]# 9,10,11,12,13,14,15,16,17,18,19,20,21,22,23,24,25,26
+FEAT=FEATaQS# 9,10,11,12,13,14,15,16,17,18,19,20,21,22,23,24,25,26
 #----------------------------
-PolyTrans=0#use polinominal transformation on the Features specified in FEATp
+PolyTrans=PolTQS#use polinominal transformation on the Features specified in FEATp
 ExpFactor=2# which degree of polinomonal (2)
 exceptNOpF= 0#Which Number of Features (NOpF) should be used with polynominal fit?  all =0; only some or all except some defined in FEATp
 onlyNOpF=1 # [0,1,2,27,28,29]
-FEATp=[0,3,4,5]#12
+FEATp=FEATpQS#12
 #---------------------------
 SamplingMeth='NONE'  # 'NONE' 'SMOTE'  or 'ADASYN' #For up and downsampling of data
 ChoosenKind=0   # 0-3['regular','borderline1','borderline2','svm'] only when using SMOTE
 #---------------------------
 probability_threshold=1 # 1 to use different probabilities tan 0.5 to decide on the class. At the moment it is >=0.2 for any other calss then AS
-ASprobLimit=[0.65,0.7]# Determine the AS lower limit for the probability for which another class is chosen than AS. For: [3 labels, >3 labels]
+ASprobLimit=ASQS# Determine the AS lower limit for the probability for which another class is chosen than AS. For: [3 labels, >3 labels]
 WhichMix='perSession' #perSession or all  # determine how the data was scaled. PEr session or just per patient
 #--------------------
 Used_classifier='RF' #RF=random forest ; ERF= extreme random forest; TR= Decission tree; GB= Gradient boosting
@@ -240,30 +254,31 @@ Run 3 IS
 
 if 6 in label:
        lst = [4,5,6,7,8,9,10,11,12,13,14,15,16,17,18,19,20,21,22,23,24,25,26,27,28,29,32]
+       lst=lstIS
 
        
        #---------------------------
        scaling='Z' # Scaling Z or MM 
        #---------------------------
-       Movingwindow=10 # WIndow size for moving average
+       Movingwindow=20 # WIndow size for moving average
        preaveraging=0
        postaveraging=1
-       exceptNOF=0 #Which Number of Features (NOF) should be used with moving average?  all =oth tzero; only some or all except some defined in FEAT
+       exceptNOF=1 #Which Number of Features (NOF) should be used with moving average?  all =oth tzero; only some or all except some defined in FEAT
        onlyNOF=0 # [0,1,2,27,28,29]
 #       FEAT=[0,1,2,29]
-       FEAT=[lst.index(4),lst.index(5),lst.index(6),lst.index(25)]
+       FEAT=FEATaIS
        #----------------------------
-       PolyTrans=1#use polinominal transformation on the Features specified in FEATp
+       PolyTrans=PolTIS#use polinominal transformation on the Features specified in FEATp
        ExpFactor=2# which degree of polinomonal (2)
        exceptNOpF= 0#Which Number of Features (NOpF) should be used with polynominal fit?  all =0; only some or all except some defined in FEATp
        onlyNOpF=1 # [0,1,2,27,28,29]
-       FEATp=[lst.index(8),lst.index(9),lst.index(10),lst.index(15),lst.index(16),lst.index(23)]#456 11 12 27
+       FEATp=FEATpIS
        #---------------------------
        SamplingMeth='NONE'  # 'NONE' 'SMOTE'  or 'ADASYN' #For up and downsampling of data
        ChoosenKind=0   # 0-3['regular','borderline1','borderline2','svm'] only when using SMOTE
        #---------------------------
        probability_threshold=1 # 1 to use different probabilities tan 0.5 to decide on the class. At the moment it is >=0.2 for any other calss then AS
-       ASprobLimit=[0.73,0.7]# Determine the AS lower limit for the probability for which another class is chosen than AS. For: [3 labels, >3 labels]
+       ASprobLimit=ASIS# Determine the AS lower limit for the probability for which another class is chosen than AS. For: [3 labels, >3 labels]
        #--------------------
        Used_classifier='RF' #RF=random forest ; ERF= extreme random forest; TR= Decission tree; GB= Gradient boosting
        N=500 # Estimators for the trees
