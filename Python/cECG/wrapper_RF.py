@@ -71,8 +71,8 @@ Loading data declaration & Wrapper variables
 
 lstQS=[0,1,2,3,4,6,7,10,11,12,13,14,16,17,18,20,21,22,23,24,25,26,27,28,29,32,33] 
 lstIS=[1,2,3,6,7,10,11,12,13,14,15,16,17,18,19,21,22,23,24,25,26,27,28,29,32,33]  
-ASQS=[0.65,0.7]
-ASIS=[0.73,0.7]
+ASQS=[0.65,0]#[0.65,0.7]
+ASIS=[0.73,0]#[0.73,0.7]
 
 PolTQS=0; FEATpQS=[]
 PolTIS=1; FEATpIS=[lstIS.index(1),lstIS.index(32)]
@@ -80,6 +80,8 @@ PolTIS=1; FEATpIS=[lstIS.index(1),lstIS.index(32)]
 FEATaQS=[lstQS.index(1),lstQS.index(4),lstQS.index(13),lstQS.index(14),lstQS.index(16),lstQS.index(18),lstQS.index(21),lstQS.index(23),lstQS.index(24),lstQS.index(25)] #lstQS.index(15)
 FEATaIS=[lstIS.index(2),lstIS.index(13),lstIS.index(14),lstIS.index(16),lstIS.index(18),lstIS.index(21),lstIS.index(23),lstIS.index(24),lstIS.index(25),lstIS.index(26),lstIS.index(33)]#lstIS.index(20)
 
+NQS=150; mslQS=2 #100 2
+NIS=500; mslIS=3 #500#3
 
 Rpeakmethod='R' #R or M
 dataset='cECG'  # Either ECG or cECG and later maybe MMC or InnerSense
@@ -117,9 +119,9 @@ ASprobLimit=ASQS# Determine the AS lower limit for the probability for which ano
 WhichMix='perSession' #perSession or all  # determine how the data was scaled. PEr session or just per patient
 #--------------------
 Used_classifier='RF' #RF=random forest ; ERF= extreme random forest; TR= Decission tree; GB= Gradient boosting
-N=100 # Estimators for the trees
+N=NQS # Estimators for the trees
 crit='gini' #gini or entropy method for trees 
-msl=2  #min_sample_leafe
+msl=mslQS  #min_sample_leafe
 deciding_performance_measure='Kappa' #Kappa , F1_second_label, F1_third_label, F1_fourth_label
 drawing=0 # draw a the tree structure
 
@@ -281,9 +283,9 @@ if 6 in label:
        ASprobLimit=ASIS# Determine the AS lower limit for the probability for which another class is chosen than AS. For: [3 labels, >3 labels]
        #--------------------
        Used_classifier='RF' #RF=random forest ; ERF= extreme random forest; TR= Decission tree; GB= Gradient boosting
-       N=500 # Estimators for the trees
+       N=NIS # Estimators for the trees
        crit='entropy' #gini or entropy method for trees 
-       msl=3  #min_sample_leafe
+       msl=mslIS  #min_sample_leafe
        deciding_performance_measure='Kappa' #Kappa , F1_second_label, F1_third_label, F1_fourth_label
 
        """
