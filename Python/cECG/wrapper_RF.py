@@ -86,7 +86,7 @@ PolTIS=0; FEATpIS=[0]
 
 
 NQS=80; mslQS=2 #100 2
-NIS=150; mslIS=3 #500#3
+NIS=100; mslIS=3 #500#3
 
 Rpeakmethod='R' #R or M
 dataset='ECG'  # Either ECG or cECG and later maybe MMC or InnerSense
