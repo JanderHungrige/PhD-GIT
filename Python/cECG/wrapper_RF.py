@@ -78,8 +78,8 @@ Loading data declaration & Wrapper variables
 #lstCTW=[4,5,6,7,8,9,10,11,12,13,14,15,16,17,18,19,20,21,22,23,24,25,26,27,28,29,32]
 
 lstQS= [0,1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16,17,18,19,20,21,22,23,24,25,26,27,28,29,32,33] 
-lstCTW=[1,2,4,5,6,7,10,11,12,13,14,15,16,17,18,19,20,21,22,23,24,25,26,27,28,29,32]
-lstIS= [1,2,4,5,6,7,10,11,12,13,14,15,16,17,18,19,20,21,22,23,24,25,26,27,28,29,32]#IS
+lstCTW=[1,2,4,5,6,7,10,11,12,14,15,16,17,18,19,20,21,22,23,24,25,26,27,28,29,32]
+lstIS= [1,2,4,5,6,7,10,11,12,14,15,16,17,18,19,20,21,22,23,24,25,26,27,28,29,32]#IS
 
 
 #AVERAGING
@@ -96,19 +96,19 @@ PolyTQS=0;
 #FEATpQS=[0,10,27]#A
 #FEATpQS=[0,10,27,15,21]#AB
 #FEATpQS=[0,10,27,15,21,9,18]#ABC
-FEATpQS=[]#[lstIS.index(11),lstIS.index(12),lstIS.index(13),lstIS.index(14),lstIS.index(10),lstIS.index(24),lstIS.index(29),lstIS.index(32)]#[0,3,4,5]#12
+FEATpQS=[11,14,29,30,31]#[lstIS.index(11),lstIS.index(12),lstIS.index(13),lstIS.index(14),lstIS.index(10),lstIS.index(24),lstIS.index(29),lstIS.index(32)]#[0,3,4,5]#12
 
 PolyTCTW=1; 
 #FEATpCTW=[0,9,27]#A
 #FEATpCTW=[0,9,27,10,16,19]#AB
 #FEATpCTW=[0,9,27,10,16,19,3,13]#ABC
-FEATpCTW=[lstIS.index(11),lstIS.index(12),lstIS.index(13),lstIS.index(14),lstIS.index(10),lstIS.index(24),lstIS.index(29),lstIS.index(32)]#[lstCTW.index(11),lstCTW.index(27),lstCTW.index(29)]
+FEATpCTW=[lstIS.index(11),lstIS.index(12),lstIS.index(14),lstIS.index(10),lstIS.index(24),lstIS.index(29),lstIS.index(32)]#[lstCTW.index(11),lstCTW.index(27),lstCTW.index(29)]
 
 PolyTIS=1; 
 #FEATpIS=[0,13,30]#A
 #FEATpIS=[0,13,30,21,24]#AB
 #FEATpIS=[0,13,30,21,24,18]#ABC
-FEATpIS=[lstIS.index(11),lstIS.index(12),lstIS.index(13),lstIS.index(14),lstIS.index(10),lstIS.index(24),lstIS.index(29),lstIS.index(32)]#456 11 12 27       
+FEATpIS=[lstIS.index(11),lstIS.index(12),lstIS.index(14),lstIS.index(10),lstIS.index(24),lstIS.index(29),lstIS.index(32)]#456 11 12 27       
        
 
 ASQS= [0,0.69]#[0.65,0]#[0.63,0.7]
